@@ -4,7 +4,7 @@ Group Name: FAKNAAN DEVS
 
 Project/System Title: TripSync
 
-**Group Members: **
+Group Members: 
 
 
 Sean Marco D. Barcenilla

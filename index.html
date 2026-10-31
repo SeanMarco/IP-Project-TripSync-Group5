@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1769ed">
+  <title>TripSync | Your Next Adventure Starts Here</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body>
+
+  <main class="page">
+
+    <!-- LEFT: Travel hero -->
+    <section class="hero">
+      <header class="hero-header">
+        <a href="#" class="brand brand-light">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Trip<span class="brand-accent">Sync</span></span>
+        </a>
+
+        <nav class="hero-nav">
+          <a href="#features">Plan</a>
+          <span>•</span>
+          <a href="#features">Explore</a>
+          <span>•</span>
+          <a href="#auth-card">Remember</a>
+        </nav>
+      </header>
+
+      <div class="hero-content">
+        <p class="eyebrow">
+          <i class="fa-solid fa-compass"></i>
+          YOUR JOURNEY STARTS HERE
+        </p>
+
+        <h1>Your Next Adventure <span>Starts Here</span></h1>
+
+        <p class="hero-description">
+          Discover new places, plan your trips, and keep your
+          memories — all in one place.
+        </p>
+
+        <div class="features" id="features">
+          <div class="feature">
+            <div class="feature-icon">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div>
+              <h3>Plan Trips</h3>
+              <p>Create your dream itineraries</p>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">
+              <i class="fa-regular fa-compass"></i>
+            </div>
+            <div>
+              <h3>Explore Destinations</h3>
+              <p>Find amazing places around the world</p>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">
+              <i class="fa-regular fa-calendar-check"></i>
+            </div>
+            <div>
+              <h3>Track & Share</h3>
+              <p>Keep your travel memories alive</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-footer">
+        <p>Better trips.<br>Better memories.</p>
+        <span class="footer-line"></span>
+      </div>
+
+      <span class="hero-decoration decoration-one"></span>
+      <span class="hero-decoration decoration-two"></span>
+    </section>
+
+    <!-- RIGHT: Authentication -->
+    <section class="auth-section">
+      <div class="auth-card" id="auth-card">
+
+        <div class="auth-brand">
+          <div class="auth-logo">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+          <h2>Trip<span>Sync</span></h2>
+          <p id="auth-subtitle">
+            Log in to your account or create a new one<br class="desktop-break">
+            to start your next adventure.
+          </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="tab active" id="login-tab" type="button">
+            Login
+          </button>
+          <button class="tab" id="signup-tab" type="button">
+            Sign Up
+          </button>
+        </div>
+
+        <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
+
+        <!-- Login form -->
+        <form id="login-form" novalidate>
+          <div class="input-group">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input
+              type="email"
+              id="login-email"
+              name="email"
+              placeholder="Email address"
+              autocomplete="email"
+              aria-label="Email address"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              placeholder="Password"
+              autocomplete="current-password"
+              aria-label="Password"
+              required
+            >
+            <button class="toggle-password" type="button"
+              data-target="login-password" aria-label="Show password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+
+          <div class="form-options">
+            <label class="remember-option">
+              <input type="checkbox" id="remember-me">
+              <span class="custom-checkbox"></span>
+              Remember me
+            </label>
+
+            <a href="#" id="forgot-password">Forgot password?</a>
+          </div>
+
+          <button class="primary-button" type="submit">
+            <span>Log In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Sign up form -->
+        <form id="signup-form" class="hidden" novalidate>
+          <div class="name-fields">
+            <div class="input-group">
+              <i class="fa-regular fa-user input-icon"></i>
+              <input
+                type="text"
+                id="signup-firstname"
+                placeholder="First name"
+                autocomplete="given-name"
+                aria-label="First name"
+                required
+              >
+            </div>
+
+            <div class="input-group">
+              <i class="fa-regular fa-user input-icon"></i>
+              <input
+                type="text"
+                id="signup-lastname"
+                placeholder="Last name"
+                autocomplete="family-name"
+                aria-label="Last name"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="input-group">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input
+              type="email"
+              id="signup-email"
+              placeholder="Email address"
+              autocomplete="email"
+              aria-label="Email address"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input
+              type="password"
+              id="signup-password"
+              placeholder="Create a password"
+              autocomplete="new-password"
+              aria-label="Create a password"
+              required
+              minlength="8"
+            >
+            <button class="toggle-password" type="button"
+              data-target="signup-password" aria-label="Show password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+
+          <div class="strength-container">
+            <div class="strength-track">
+              <span id="strength-bar"></span>
+            </div>
+            <p id="strength-text">Use at least 8 characters</p>
+          </div>
+
+          <div class="input-group">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+            <input
+              type="password"
+              id="confirm-password"
+              placeholder="Confirm password"
+              autocomplete="new-password"
+              aria-label="Confirm password"
+              required
+            >
+            <button class="toggle-password" type="button"
+              data-target="confirm-password" aria-label="Show password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+
+          <label class="terms-option">
+            <input type="checkbox" id="accept-terms" required>
+            <span>
+              I agree to the <a href="#" id="terms-link">Terms of Service</a>
+              and <a href="#" id="privacy-link">Privacy Policy</a>.
+            </span>
+          </label>
+
+          <button class="primary-button" type="submit">
+            <span>Create Account</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Social login -->
+        <div class="divider">
+          <span></span>
+          <p>or continue with</p>
+          <span></span>
+        </div>
+
+        <div class="social-buttons">
+          <button type="button" class="social-button" data-provider="Google">
+            <i class="fa-brands fa-google google-icon"></i>
+            <span>Google</span>
+          </button>
+
+          <button type="button" class="social-button" data-provider="Facebook">
+            <i class="fa-brands fa-facebook facaebook-icon"></i>
+            <span>Facebook</span>
+          </button>
+
+          <button type="button" class="social-button" data-provider="Apple">
+            <i class="fa-brands fa-apple apple-icon"></i>
+            <span>Apple</span>
+          </button>
+        </div>
+
+        <p class="switch-prompt" id="switch-prompt">
+          Don't have an account?
+          <button type="button" id="switch-auth">Sign Up</button>
+        </p>
+
+        <p class="copyright">© 2026 TripSync. Made for your next adventure.</p>
+
+      </div>
+    </section>
+
+  </main>
+
+    
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

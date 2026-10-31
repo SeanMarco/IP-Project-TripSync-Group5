@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#123d7a" />
+  <title>TripSync — Your Travel Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="dashboard.html" aria-label="TripSync home">
+        <span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">▦</span>Overview</a>
+        <a class="nav-link" href="#my-trips"><span class="nav-icon">⌁</span>My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
+        <a class="nav-link" href="#itinerary"><span class="nav-icon">▤</span>Itinerary</a>
+        <a class="nav-link" href="#destinations"><span class="nav-icon">◎</span>Explore places</a>
+        <a class="nav-link" href="#saved"><span class="nav-icon">♡</span>Saved places</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card"><div class="help-icon">✧</div><strong>Need a hand planning?</strong><p>Your next great trip is only a few steps away.</p><a href="mailto:support@tripsync.app">Visit help center <span>↗</span></a></div>
+        <button class="profile-mini" id="sidebar-profile" type="button"><span class="avatar" id="avatar-initials">TS</span><span class="profile-copy"><strong id="sidebar-name">TripSync Traveler</strong><small>Personal account</small></span><span class="more">···</span></button>
+        <button class="logout-link" id="logout-button" type="button"><span>↪</span> Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open menu" type="button">☰</button>
+        <div class="breadcrumb"><span>Workspace</span><span class="crumb-slash">/</span><strong>Overview</strong></div>
+        <div class="top-actions">
+          <button class="icon-button notification-button" aria-label="Notifications" type="button">♧<i></i></button>
+          <div class="top-divider"></div>
+          <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
+          <span class="avatar avatar-small" id="top-avatar">TS</span>
+        </div>
+      </header>
+
+      <section class="welcome-row" id="overview">
+        <div><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR TRAVEL SPACE</div><h1>Make room for <span>adventure.</span></h1><p class="welcome-subtitle">Your plans, places, and next great memories — all in one place.</p></div>
+        <a class="primary-button" id="plan-trip-btn" href="#my-trips"><span>＋</span> Plan a new trip</a>
+      </section>
+
+      <section class="stats-grid" aria-label="Travel summary">
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">Upcoming trips</span><span class="stat-icon blue-icon">⌁</span></div><div class="stat-number" id="stat-upcoming">00</div><div class="stat-foot"><span class="status-dot blue-dot"></span> <span id="stat-upcoming-foot">Plan your first trip</span></div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">Places saved</span><span class="stat-icon purple-icon">♡</span></div><div class="stat-number" id="stat-saved">00</div><div class="stat-foot"><span class="foot-muted">Across</span> <span id="stat-saved-foot">0 destinations</span></div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">Days traveled</span><span class="stat-icon orange-icon">✈</span></div><div class="stat-number"><span id="stat-days">0</span> <small>days</small></div><div class="stat-foot"><span class="status-dot green-dot"></span> <span id="stat-days-foot">Your first adventure awaits</span></div></article>
+        <article class="stat-card budget-stat"><div class="stat-top"><span class="stat-label">Trip budget overview</span><span class="stat-icon green-icon">₱</span></div><div class="budget-amount"><span id="budget-planned">₱0</span> <small>of <span id="budget-total">₱0</span></small></div><div class="progress-track"><span id="budget-fill" style="width:0%"></span></div><div class="budget-foot"><span id="budget-pct">0% planned</span><strong id="budget-left">₱0 left</strong></div></article>
+      </section>
+
+      <section class="content-grid">
+        <div class="primary-column">
+          <div class="section-heading" id="my-trips"><div><div class="eyebrow">YOUR PLANS</div><h2>Upcoming trips <span class="heading-count" id="trip-count">0</span></h2></div><a class="text-link" href="#itinerary">View itinerary <span>→</span></a></div>
+          <div id="featured-trip"></div>
+          <div class="trip-list" id="trip-list"></div>
+          <div class="section-heading destination-heading" id="destinations"><div><div class="eyebrow">FIND YOUR NEXT FAVORITE</div><h2>Explore destinations</h2></div><a class="text-link" href="#saved">Explore all <span>→</span></a></div>
+          <div class="destination-grid" id="destination-grid"></div>
+        </div>
+
+        <aside class="right-column">
+          <section class="panel place-panel" id="map-panel"><div class="panel-heading"><div><div class="eyebrow">YOUR DESTINATION</div><h2 id="map-title">Map &amp; weather</h2></div><a class="text-link" id="map-open" href="#" target="_blank" rel="noopener" hidden>Open in Maps <span>↗</span></a></div><div class="map-box" id="map" hidden></div><div class="empty-note" id="map-empty"><strong>No destination yet</strong>Plan a trip to see its map and weather.</div><div class="weather" id="weather" hidden><div class="weather-now"><span class="weather-icon" id="weather-icon">☀️</span><div><strong id="weather-temp">--°C</strong><small id="weather-desc"></small></div><div class="weather-stats"><span id="weather-wind"></span><span id="weather-humidity"></span></div></div><div class="forecast" id="forecast"></div></div></section>
+          <section class="panel itinerary-panel" id="itinerary"><div class="panel-heading"><div><div class="eyebrow">UP NEXT</div><h2>Trip timeline</h2></div><button class="more-button" type="button" aria-label="More timeline options">···</button></div><div class="timeline-date"><div><strong id="timeline-month">No upcoming trip</strong><span id="timeline-trip">Add a trip to see your timeline</span></div><div class="calendar-icon">▦</div></div><div class="timeline" id="timeline"></div><a class="panel-footer-link" href="#my-trips">See full itinerary <span>→</span></a></section>
+          <section class="panel checklist-panel"><div class="panel-heading"><div><div class="eyebrow">STAY ON TRACK</div><h2>Trip checklist</h2></div><span class="check-count" id="check-count">0 of 0</span></div><div class="check-progress"><span id="check-progress-fill" style="width:0%"></span></div><div class="checklist" id="checklist"></div><button class="outline-button" id="add-checklist-item" type="button">＋ Add checklist item</button></section>
+          <section class="inspiration-card"><div class="inspiration-sparkle">✦</div><span class="eyebrow">A LITTLE INSPIRATION</span><h3>Collect moments,<br/>not just miles.</h3><p>The best trips leave you with stories worth telling.</p><a href="#destinations">Find inspiration <span>→</span></a><div class="inspiration-orb orb-one"></div><div class="inspiration-orb orb-two"></div></section>
+        </aside>
+      </section>
+      <footer class="page-footer"><span>© <span id="footer-year">2026</span> TripSync</span><span>Made for the journeys that matter.</span><a href="mailto:support@tripsync.app">Support</a></footer>
+    </main>
+  </div>
+  <div class="modal" id="trip-modal" hidden role="dialog" aria-modal="true" aria-labelledby="trip-modal-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div><div class="eyebrow"><span class="eyebrow-dot"></span> NEW ADVENTURE</div><h2 id="trip-modal-title">Plan a new trip</h2></div>
+        <button class="modal-close" id="trip-modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p class="form-error" id="trip-form-error" role="alert" hidden></p>
+      <form id="trip-form" novalidate>
+        <div class="form-grid">
+          <div class="field full"><label for="trip-title">Trip name</label><input type="text" id="trip-title" placeholder="e.g. Island escape" maxlength="80" required /></div>
+          <div class="field"><label for="trip-destination">Destination</label><div class="suggest-wrap"><input type="text" id="trip-destination" placeholder="e.g. Bali" maxlength="80" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="dest-suggestions" required /><ul class="suggest-list" id="dest-suggestions" role="listbox" hidden></ul></div></div>
+          <div class="field"><label for="trip-country">Country</label><input type="text" id="trip-country" placeholder="e.g. Indonesia" maxlength="80" /></div>
+          <div class="field full"><small class="field-hint" id="dest-hint"></small></div>
+          <div class="field"><label for="trip-start">Start date</label><input type="date" id="trip-start" required /></div>
+          <div class="field"><label for="trip-end">End date</label><input type="date" id="trip-end" required /></div>
+          <div class="field"><label for="trip-travelers">Travelers</label><input type="number" id="trip-travelers" value="1" min="1" max="99" step="1" /></div>
+          <div class="field"><label for="trip-status">Status</label><select id="trip-status"><option value="planning" selected>Planning</option><option value="booked">Booked</option><option value="saved">Saved</option></select></div>
+          <div class="field"><label for="trip-budget">Budget (₱)</label><input type="number" id="trip-budget" min="0" step="0.01" placeholder="0" /></div>
+          <div class="field"><label for="trip-tagline">Tagline <small>(optional)</small></label><input type="text" id="trip-tagline" placeholder="e.g. Sunsets, temples &amp; slow mornings" maxlength="120" /></div>
+          <div class="field full"><label for="trip-cover">Cover photo URL <small>(optional)</small></label><input type="url" id="trip-cover" placeholder="https://..." /></div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-button" id="trip-cancel" type="button">Cancel</button>
+          <button class="primary-button" id="trip-submit" type="submit"><span>＋</span> <b id="trip-submit-label">Save trip</b></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Supabase scripts must load before dashboard.js. Keep your existing project URL/key in supabase-config.js. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="maps-config.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

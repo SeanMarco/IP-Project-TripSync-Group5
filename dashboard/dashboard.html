@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="dashboard.css" />
 </head>
 <body>
@@ -21,7 +22,7 @@
       <nav class="side-nav" aria-label="Main navigation">
         <a class="nav-link active" href="#overview"><span class="nav-icon">▦</span>Overview</a>
         <a class="nav-link" href="trips/trips.html"><span class="nav-icon">⌁</span>My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
-        <a class="nav-link" href="#itinerary"><span class="nav-icon">▤</span>Itinerary</a>
+        <a class="nav-link" href="itinerary/itinerary.html"><span class="nav-icon">▤</span>Itinerary</a>
         <a class="nav-link" href="#destinations"><span class="nav-icon">◎</span>Explore places</a>
         <a class="nav-link" href="#saved"><span class="nav-icon">♡</span>Saved places</a>
       </nav>
@@ -64,8 +65,8 @@
         </div>
 
         <aside class="right-column">
-          <section class="panel place-panel" id="map-panel" hidden><div class="panel-heading"><div><h2 id="map-title">Map &amp; weather</h2></div><a class="text-link" id="map-open" href="#" target="_blank" rel="noopener" hidden>Open in Maps <span>↗</span></a></div><div class="map-box" id="map" hidden></div><div class="empty-note" id="map-empty"><strong>No destination yet</strong>Plan a trip to see its map and weather.</div><div class="weather" id="weather" hidden><div class="weather-now"><span class="weather-icon" id="weather-icon">☀️</span><div><strong id="weather-temp">--°C</strong><small id="weather-desc"></small></div><div class="weather-stats"><span id="weather-wind"></span><span id="weather-humidity"></span></div></div><div class="forecast" id="forecast"></div></div></section>
-          <section class="panel itinerary-panel" id="itinerary"><div class="panel-heading"><div><h2>Trip timeline</h2></div></div><div class="timeline-date"><div><strong id="timeline-month">No upcoming trip</strong><span id="timeline-trip">Add a trip to see your timeline</span></div><div class="calendar-icon">▦</div></div><div class="timeline" id="timeline"></div></section>
+          <section class="panel place-panel" id="map-panel"><div class="panel-heading"><div><h2 id="map-title">Map &amp; weather</h2></div><a class="text-link" id="map-open" href="#" target="_blank" rel="noopener" hidden>Open in Maps <span>↗</span></a></div><div class="map-box" id="map" hidden></div><div class="empty-note" id="map-empty"><strong>No destination yet</strong>Plan a trip to see its map and weather.</div><div class="weather" id="weather" hidden><div class="weather-now"><span class="weather-icon" id="weather-icon">☀️</span><div><strong id="weather-temp">--°C</strong><small id="weather-desc"></small></div><div class="weather-stats"><span id="weather-wind"></span><span id="weather-humidity"></span></div></div><div class="forecast" id="forecast"></div></div></section>
+          <section class="panel itinerary-panel" id="itinerary"><div class="panel-heading"><div><h2>Trip timeline</h2></div><a class="text-link" id="timeline-link" href="itinerary/itinerary.html">Plan days <span>→</span></a></div><div class="timeline-date"><div><strong id="timeline-month">No upcoming trip</strong><span id="timeline-trip">Add a trip to see your timeline</span></div><div class="calendar-icon">▦</div></div><div class="timeline" id="timeline"></div></section>
           <section class="panel checklist-panel"><div class="panel-heading"><div><h2>Trip checklist</h2></div><span class="check-count" id="check-count">0 of 0</span></div><div class="check-progress"><span id="check-progress-fill" style="width:0%"></span></div><div class="checklist" id="checklist"></div><button class="outline-button" id="add-checklist-item" type="button">＋ Add checklist item</button></section>
         </aside>
       </section>
@@ -104,7 +105,7 @@
   <!-- Supabase scripts must load before dashboard.js. Keep your existing project URL/key in supabase-config.js. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase/supabase-config.js"></script>
-  <script src="maps-config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="dashboard.js"></script>
   <script src="trip-ai.js"></script>
 </body>

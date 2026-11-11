@@ -1,0 +1,35 @@
+.trip-summary{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.itinerary-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.trip-select{height:42px;min-width:220px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;outline:none}
+.trip-select:focus{border-color:var(--blue)}
+.trip-select[hidden]{display:none}
+.primary-button:disabled{opacity:.5;cursor:not-allowed}
+
+.days{display:grid;gap:14px;padding-bottom:40px}
+.days .empty-note .text-link{display:inline-block;margin-top:10px}
+.day-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.day-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:10px}
+.day-no{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--red)}
+.day-head h3{font:800 16px Manrope,sans-serif;letter-spacing:-.4px;margin:4px 0 0}
+.add-to-day{border:0;background:none;cursor:pointer;padding:4px 0}
+.day-empty{margin:0;padding:12px;border:1px dashed var(--line);border-radius:9px;text-align:center;font-size:11px;color:var(--muted)}
+
+.plan-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.plan-row:first-of-type{border-top:0}
+.plan-time{width:62px;flex:none;font-size:11px;font-weight:700;color:var(--blue)}
+.plan-icon{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;background:var(--blue-soft);font-size:14px}
+.plan-text{flex:1;min-width:0;display:grid;gap:2px}
+.plan-text strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plan-text small{font-size:10px;color:var(--muted)}
+.plan-btn{width:28px;height:28px;flex:none;border:1px solid var(--line);border-radius:8px;background:none;color:var(--muted);font-size:12px;opacity:0;transition:.2s}
+.plan-row:hover .plan-btn,.plan-btn:focus-visible{opacity:1}
+.plan-btn:hover{color:var(--blue);border-color:var(--blue)}
+.plan-btn.danger:hover{color:var(--red);border-color:var(--red)}
+
+.tag-picker{display:flex;flex-wrap:wrap;gap:6px}
+.tag-picker button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);font-size:11px;font-weight:600;transition:.2s}
+.tag-picker button:hover{border-color:var(--blue)}
+.tag-picker button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+@media(hover:none){.plan-btn{opacity:1}}
+@media(max-width:700px){.itinerary-actions{width:100%}.trip-select{flex:1;min-width:0}.plan-time{width:52px}}

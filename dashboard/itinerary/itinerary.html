@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2c93d6" />
+  <title>TripSync — Itinerary</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../dashboard.css" />
+  <link rel="stylesheet" href="../trips/trips.css" />
+  <link rel="stylesheet" href="itinerary.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../dashboard.html" aria-label="TripSync home">
+        <span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <a class="nav-link" href="../dashboard.html"><span class="nav-icon">▦</span>Overview</a>
+        <a class="nav-link" href="../trips/trips.html"><span class="nav-icon">⌁</span>My trips</a>
+        <a class="nav-link active" href="itinerary.html"><span class="nav-icon">▤</span>Itinerary</a>
+        <a class="nav-link" href="../dashboard.html#destinations"><span class="nav-icon">◎</span>Explore places</a>
+        <a class="nav-link" href="../dashboard.html#saved"><span class="nav-icon">♡</span>Saved places</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="profile-mini" type="button"><span class="avatar" id="avatar-initials">TS</span><span class="profile-copy"><strong id="sidebar-name">TripSync Traveler</strong><small>Personal account</small></span><span class="more">···</span></button>
+        <button class="logout-link" id="logout-button" type="button"><span>↪</span> Log out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open menu" type="button">☰</button>
+        <div class="breadcrumb"><a href="../dashboard.html">Workspace</a><span class="crumb-slash">/</span><strong>Itinerary</strong></div>
+        <div class="top-actions">
+          <button class="icon-button theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" type="button"><span class="moon">☾</span><span class="sun">☀</span></button>
+          <div class="top-divider"></div>
+          <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
+          <span class="avatar avatar-small" id="top-avatar">TS</span>
+        </div>
+      </header>
+
+      <section class="welcome-row">
+        <div>
+          <h1>Day by <span>day.</span></h1>
+          <p class="trip-summary" id="trip-summary"></p>
+        </div>
+        <div class="itinerary-actions">
+          <select class="trip-select" id="trip-select" aria-label="Choose a trip"></select>
+          <button class="primary-button" id="add-item-btn" type="button"><span>＋</span> Add item</button>
+        </div>
+      </section>
+
+      <section class="days" id="days"></section>
+    </main>
+  </div>
+
+  <div class="modal" id="item-modal" hidden role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div><h2 id="item-modal-title">Add to itinerary</h2></div>
+        <button class="modal-close" id="item-modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p class="form-error" id="item-form-error" role="alert" hidden></p>
+      <form id="item-form" novalidate>
+        <div class="form-grid">
+          <div class="field full"><label for="item-title">What's the plan?</label><input type="text" id="item-title" placeholder="e.g. Island hopping tour" maxlength="100" required /></div>
+          <div class="field"><label for="item-date">Day</label><select id="item-date" required></select></div>
+          <div class="field"><label for="item-time">Time <small>(optional)</small></label><input type="time" id="item-time" /></div>
+          <div class="field full"><label>Type <small>(optional)</small></label>
+            <div class="tag-picker" id="tag-picker">
+              <button type="button" data-tag="Flight">✈ Flight</button>
+              <button type="button" data-tag="Hotel">🛏 Hotel</button>
+              <button type="button" data-tag="Food">🍜 Food</button>
+              <button type="button" data-tag="Activity">⛰ Activity</button>
+              <button type="button" data-tag="Transport">🚌 Transport</button>
+              <button type="button" data-tag="Other">✦ Other</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-button" id="item-cancel" type="button">Cancel</button>
+          <button class="primary-button" id="item-submit" type="submit"><span>＋</span> <b id="item-submit-label">Add item</b></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase/supabase-config.js"></script>
+  <script src="itinerary.js"></script>
+</body>
+</html>

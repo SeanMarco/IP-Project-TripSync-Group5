@@ -277,7 +277,7 @@
             <span>${esc(shortDate(t.start_date))} – ${esc(shortDate(t.end_date))}, ${parseDate(t.end_date).getFullYear()} <b>·</b> ${plural(tripDays(t), 'day')}</span>
             <div class="trip-meta"><span>♧ ${plural(t.travelers || 1, 'traveler')}</span><span>◷ ${esc(countdown)}</span></div>
           </div>
-          <a class="round-arrow" href="#itinerary" aria-label="Open ${esc(t.title)} itinerary">↗</a>
+          <a class="round-arrow" href="itinerary/itinerary.html?trip=${esc(t.id)}" aria-label="Open ${esc(t.title)} itinerary">↗</a>
         </div>
       </article>`;
 
@@ -330,11 +330,12 @@
       return;
     }
 
+    $('#timeline-link').href = `itinerary/itinerary.html?trip=${encodeURIComponent(t.id)}`;
     $('#timeline-month').textContent = parseDate(t.start_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     $('#timeline-trip').textContent = t.title;
 
     if (!state.itinerary.length) {
-      box.innerHTML = '<div class="empty-note">No itinerary items for this trip yet.</div>';
+      box.innerHTML = `<div class="empty-note">No plans for this trip yet.<br><a class="text-link" href="itinerary/itinerary.html?trip=${encodeURIComponent(t.id)}">Plan your days →</a></div>`;
       return;
     }
 
@@ -652,7 +653,17 @@
   }
 
   async function geocodeTrip(trip) {
-    if (!gm) return null;
+    if (!gm) {
+      try {
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&name=${encodeURIComponent(trip.destination)}`);
+        const results = (await res.json()).results || [];
+        const hit = results.find((r) => trip.country && r.country?.toLowerCase() === trip.country.toLowerCase()) || results[0];
+        return hit ? { lat: hit.latitude, lng: hit.longitude, placeId: null } : null;
+      } catch (error) {
+        console.error('Geocode error:', error);
+        return null;
+      }
+    }
     try {
       const { places } = await gm.Place.searchByText({
         textQuery: [trip.destination, trip.country].filter(Boolean).join(', '),
@@ -671,6 +682,20 @@
   function showMap(lat, lng, label) {
     const box = $('#map');
     box.hidden = false;
+    if (!gm) {
+      if (typeof L === 'undefined') return (box.hidden = true);
+      if (!map) {
+        map = L.map(box, { scrollWheelZoom: false }).setView([lat, lng], 10);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+        mapMarker = L.marker([lat, lng]).addTo(map);
+      } else {
+        map.setView([lat, lng], 10);
+        mapMarker.setLatLng([lat, lng]);
+      }
+      mapMarker.bindPopup(esc(label));
+      setTimeout(() => map.invalidateSize(), 0);
+      return;
+    }
     const pos = { lat, lng };
     if (!map) {
       map = new gm.Map(box, {
@@ -733,14 +758,13 @@
 
     const label = [t.destination, t.country].filter(Boolean).join(', ');
     await mapsReady;
-    $('#map-panel').hidden = !gm;
     if (token !== panelToken) return;
 
     let lat = t.latitude != null ? Number(t.latitude) : null;
     let lng = t.longitude != null ? Number(t.longitude) : null;
 
     // Older trips (added without a suggestion) get located once, then saved.
-    if ((lat == null || lng == null) && gm) {
+    if (lat == null || lng == null) {
       const found = await geocodeTrip(t);
       if (token !== panelToken) return;
       if (found) {
@@ -757,10 +781,7 @@
     }
 
     if (lat == null || lng == null) {
-      return panelEmpty(
-        gm ? 'Couldn’t find this place' : 'Map is off',
-        gm ? `We couldn’t locate “${label}” on the map.` : 'Add your Google Maps key in maps-config.js to see the map and weather.'
-      );
+      return panelEmpty('Couldn’t find this place', `We couldn’t locate “${label}” on the map.`);
     }
 
     $('#map-title').textContent = t.destination;
@@ -773,8 +794,7 @@
     link.href = `https://www.google.com/maps/search/?api=1&${query}`;
     link.hidden = false;
 
-    if (gm) showMap(lat, lng, label);
-    else $('#map').hidden = true;
+    showMap(lat, lng, label);
 
     loadWeather(lat, lng, t.destination, token).catch((error) => {
       console.error('Weather error:', error);

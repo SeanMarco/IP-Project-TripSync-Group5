@@ -73,19 +73,20 @@
       <p class="form-error" id="trip-form-error" role="alert" hidden></p>
       <form id="trip-form" novalidate>
         <div class="form-grid">
-          <div class="field full"><div class="field-head"><label for="trip-title">Trip name</label><button class="ai-button" id="ai-suggest" type="button">✨ Suggest</button></div><input type="text" id="trip-title" placeholder="e.g. Island escape" maxlength="80" required /><div class="ai-chips" id="ai-chips" hidden></div></div>
           <div class="field"><label for="trip-destination">Destination</label><input type="text" id="trip-destination" placeholder="e.g. Bali" maxlength="80" required /></div>
           <div class="field"><label for="trip-country">Country</label><input type="text" id="trip-country" placeholder="e.g. Indonesia" maxlength="80" /></div>
           <div class="field full"><small class="field-hint" id="dest-hint">Type a destination and the country fills in by itself.</small></div>
+          <div class="field full"><div class="field-head"><label for="trip-title">Trip name</label><button class="ai-button" id="ai-suggest" type="button">✨ Suggest</button></div><input type="text" id="trip-title" placeholder="e.g. Island escape" maxlength="80" required /><div class="ai-chips" id="ai-chips" hidden></div></div>
+          <div class="field full"><div class="field-head"><label for="trip-tagline">Tagline <small>(optional)</small></label><button class="ai-button" id="ai-suggest-tagline" type="button">✨ Suggest</button></div><input type="text" id="trip-tagline" placeholder="e.g. Sunsets, temples &amp; slow mornings" maxlength="120" /><div class="ai-chips" id="ai-tagline-chips" hidden></div></div>
           <div class="field"><label for="trip-start">Start date</label><input type="date" id="trip-start" required /></div>
           <div class="field"><label for="trip-end">End date</label><input type="date" id="trip-end" required /></div>
           <div class="field"><label for="trip-travelers">Travelers</label><input type="number" id="trip-travelers" value="1" min="1" max="99" step="1" /></div>
           <div class="field"><label for="trip-status">Status</label><select id="trip-status"><option value="planning" selected>Planning</option><option value="booked">Booked</option><option value="saved">Saved</option><option value="completed">Completed</option></select></div>
           <div class="field"><label for="trip-budget">Budget (₱)</label><input type="number" id="trip-budget" min="0" step="0.01" placeholder="0" /></div>
-          <div class="field"><label for="trip-tagline">Tagline <small>(optional)</small></label><input type="text" id="trip-tagline" placeholder="e.g. Sunsets, temples &amp; slow mornings" maxlength="120" /></div>
-          <div class="field full"><label for="trip-cover">Cover photo URL <small>(optional)</small></label><input type="url" id="trip-cover" placeholder="https://..." /></div>
+          <div class="field"><div class="field-head"><label for="trip-cover">Cover photo <small>(optional)</small></label><button class="ai-button wiki-button" id="wiki-photo" type="button">📷 Wikipedia</button></div><input type="url" id="trip-cover" placeholder="Paste a link or press 📷" /><img class="cover-preview" id="cover-preview" alt="Cover photo preview" hidden /></div>
         </div>
         <div class="modal-actions">
+          <button class="ghost-button reset-button" id="trip-reset" type="button">↺ Start over</button>
           <button class="ghost-button" id="trip-cancel" type="button">Cancel</button>
           <button class="primary-button" id="trip-submit" type="submit"><span>＋</span> <b id="trip-submit-label">Save trip</b></button>
         </div>
@@ -96,6 +97,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../supabase/supabase-config.js"></script>
+  <script src="../travel-api.js"></script>
   <script src="trips.js"></script>
   <script src="../trip-ai.js"></script>
 </body>

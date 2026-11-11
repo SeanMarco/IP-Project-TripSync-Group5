@@ -18,18 +18,20 @@ Deno.serve(async (req) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return reply({ error: "Please sign in first." }, 401);
 
-  const { destination, country, days, travelers, tagline } = await req.json().catch(() => ({}));
+  const { destination, country, days, travelers, title, tagline } = await req.json().catch(() => ({}));
   if (!destination) return reply({ error: "Destination is required." }, 400);
 
   const trip = [
     `Destination: ${String(destination).slice(0, 80)}${country ? ", " + String(country).slice(0, 80) : ""}`,
     days ? `Length: ${Number(days)} days` : "",
     travelers ? `Travelers: ${Number(travelers)}` : "",
+    title ? `Trip name: ${String(title).slice(0, 80)}` : "",
     tagline ? `Vibe: ${String(tagline).slice(0, 120)}` : "",
   ].filter(Boolean).join("\n");
 
   const prompt = `You name trips for a travel planning app.
 Suggest 3 short, catchy trip names (2 to 5 words each) and a one-line tagline (max 8 words) for each.
+If a trip name is given, keep it and write 3 different taglines that fit it.
 ${trip}
 Reply only with JSON in this format: [{"name": "...", "tagline": "..."}]`;
 

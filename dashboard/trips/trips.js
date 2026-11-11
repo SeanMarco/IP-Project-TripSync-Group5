@@ -7,6 +7,7 @@
   let trips = [];
   let filter = 'all';
   let editingTrip = null;
+  let hasDraft = false;
   let toastTimer;
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -58,6 +59,7 @@
     if (error) return showToast(error.message);
     trips = rows;
     render();
+    if (await TravelAPI.fillCovers(client, trips)) render();
   }
 
   function render() {
@@ -109,11 +111,20 @@
   function openModal(trip = null) {
     if (!user) return showToast('Sign in to plan a trip.');
     editingTrip = trip;
-    $('#trip-form').reset();
-    $('#ai-chips').hidden = true;
-    $('#trip-form-error').hidden = true;
     $('#trip-modal-title').textContent = trip ? 'Edit trip' : 'Plan a new trip';
     $('#trip-submit-label').textContent = trip ? 'Save changes' : 'Save trip';
+    $('#trip-reset').hidden = !!trip;
+    $('#trip-modal').hidden = false;
+    document.body.classList.add('modal-open');
+    $('#trip-destination').focus();
+    if (!trip && hasDraft) return;
+
+    $('#trip-form').reset();
+    $('#ai-chips').hidden = true;
+    $('#ai-tagline-chips').hidden = true;
+    $('#trip-form-error').hidden = true;
+    $('#trip-country').dataset.auto = '';
+    $('#dest-hint').textContent = 'Type a destination and the country fills in by itself.';
     if (trip) {
       $('#trip-title').value = trip.title;
       $('#trip-destination').value = trip.destination;
@@ -126,12 +137,10 @@
       $('#trip-tagline').value = trip.tagline || '';
       $('#trip-cover').value = trip.cover_url || '';
     }
-    $('#trip-modal').hidden = false;
-    document.body.classList.add('modal-open');
-    $('#trip-title').focus();
   }
 
   function closeModal() {
+    hasDraft = !editingTrip;
     $('#trip-modal').hidden = true;
     document.body.classList.remove('modal-open');
   }
@@ -178,6 +187,7 @@
     trips = trips.filter((t) => t.id !== data.id).concat(data).sort((a, b) => a.start_date.localeCompare(b.start_date));
     showToast(editingTrip ? 'Trip updated.' : 'Trip saved.');
     closeModal();
+    hasDraft = false;
     render();
   }
 
@@ -223,8 +233,12 @@
     $('#new-trip-btn').addEventListener('click', () => openModal());
     $('#trip-modal-close').addEventListener('click', closeModal);
     $('#trip-cancel').addEventListener('click', closeModal);
+    $('#trip-reset').addEventListener('click', () => {
+      hasDraft = false;
+      openModal();
+    });
     $('#trip-modal').addEventListener('click', (event) => event.target === event.currentTarget && closeModal());
-    document.addEventListener('keydown', (event) => event.key === 'Escape' && closeModal());
+    document.addEventListener('keydown', (event) => event.key === 'Escape' && !$('#trip-modal').hidden && closeModal());
     $('#trip-form').addEventListener('submit', saveTrip);
     $('#trip-start').addEventListener('change', () => {
       $('#trip-end').min = $('#trip-start').value;

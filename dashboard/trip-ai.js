@@ -4,26 +4,60 @@ document.addEventListener('DOMContentLoaded', () => {
   const destination = $('#trip-destination');
   const country = $('#trip-country');
   const tagline = $('#trip-tagline');
+  const cover = $('#trip-cover');
   const hint = $('#dest-hint');
   const button = $('#ai-suggest');
   const chips = $('#ai-chips');
+  const tagButton = $('#ai-suggest-tagline');
+  const tagChips = $('#ai-tagline-chips');
   const client = typeof supabaseClient !== 'undefined' ? supabaseClient : null;
 
   country.addEventListener('input', () => (country.dataset.auto = ''));
 
   destination.addEventListener('change', async () => {
     const name = destination.value.trim();
-    if (!name || (country.value && !country.dataset.auto)) return;
-    try {
-      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&name=${encodeURIComponent(name)}`);
-      const place = (await res.json()).results?.[0];
-      if (!place?.country) return;
-      country.value = place.country;
-      country.dataset.auto = '1';
-      if (hint) hint.textContent = `📍 ${place.name} is in ${place.country}${place.admin1 ? ` (${place.admin1})` : ''}. Change it if that's not the one.`;
-    } catch (error) {
-      console.error('Country lookup failed:', error);
+    if (!name) return;
+    if (!country.value || country.dataset.auto) {
+      const place = await TravelAPI.geocode(name);
+      if (place?.country) {
+        country.value = place.country;
+        country.dataset.auto = '1';
+        if (hint) hint.textContent = `📍 ${place.name} is in ${place.country}${place.admin1 ? ` (${place.admin1})` : ''}. Change it if that's not the one.`;
+      }
     }
+  });
+
+  const wikiButton = $('#wiki-photo');
+  const preview = $('#cover-preview');
+
+  function showPreview() {
+    const url = cover.value.trim();
+    preview.hidden = !/^https?:\/\//i.test(url);
+    if (!preview.hidden) preview.src = url;
+  }
+
+  cover.addEventListener('input', showPreview);
+  preview.addEventListener('error', () => (preview.hidden = true));
+  new MutationObserver(showPreview).observe($('#trip-modal'), { attributes: true, attributeFilter: ['hidden'] });
+
+  wikiButton.addEventListener('click', async () => {
+    const place = destination.value.trim();
+    if (!place) {
+      destination.focus();
+      if (hint) hint.textContent = 'Type a destination first, then press 📷 Wikipedia.';
+      return;
+    }
+    wikiButton.disabled = true;
+    wikiButton.textContent = '📷 Finding…';
+    const page = await TravelAPI.wiki(place, country.value.trim());
+    wikiButton.disabled = false;
+    wikiButton.textContent = '📷 Wikipedia';
+    if (!page?.photo) {
+      if (hint) hint.textContent = `Wikipedia has no photo for ${place}. You can paste your own link instead.`;
+      return;
+    }
+    cover.value = page.photo;
+    showPreview();
   });
 
   function tripDays() {
@@ -40,23 +74,27 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
   }
 
-  function showChips(suggestions, note) {
-    chips.innerHTML = suggestions
-      .map((s, i) => `<button type="button" class="ai-chip" data-i="${i}"><b></b><small></small></button>`)
+  function showChips(box, suggestions, note, forTagline) {
+    box.innerHTML = suggestions
+      .map(() => '<button type="button" class="ai-chip"><b></b><small></small></button>')
       .join('') + (note ? `<p class="ai-note">${note}</p>` : '');
-    chips.querySelectorAll('.ai-chip').forEach((chip, i) => {
-      chip.querySelector('b').textContent = suggestions[i].name;
-      chip.querySelector('small').textContent = suggestions[i].tagline;
+    box.querySelectorAll('.ai-chip').forEach((chip, i) => {
+      const s = suggestions[i];
+      chip.querySelector('b').textContent = forTagline ? s.tagline : s.name;
+      chip.querySelector('small').textContent = forTagline ? '' : s.tagline;
       chip.addEventListener('click', () => {
-        title.value = suggestions[i].name;
-        if (!tagline.value.trim()) tagline.value = suggestions[i].tagline;
-        chips.hidden = true;
+        if (forTagline) tagline.value = s.tagline;
+        else {
+          title.value = s.name;
+          if (!tagline.value.trim()) tagline.value = s.tagline;
+        }
+        box.hidden = true;
       });
     });
-    chips.hidden = false;
+    box.hidden = false;
   }
 
-  button.addEventListener('click', async () => {
+  async function suggest(btn, box, forTagline) {
     const place = destination.value.trim();
     if (!place) {
       destination.focus();
@@ -64,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    button.disabled = true;
-    button.textContent = '✨ Thinking…';
+    btn.disabled = true;
+    btn.textContent = '✨ Thinking…';
     try {
       const { data, error } = await client.functions.invoke('suggest-trip-name', {
         body: {
@@ -73,21 +111,22 @@ document.addEventListener('DOMContentLoaded', () => {
           country: country.value.trim(),
           days: tripDays(),
           travelers: Number($('#trip-travelers').value) || 1,
-          tagline: tagline.value.trim()
+          title: forTagline ? title.value.trim() : '',
+          tagline: forTagline ? '' : tagline.value.trim()
         }
       });
       if (error || !data?.suggestions?.length) throw error || new Error('No suggestions');
-      showChips(data.suggestions);
+      showChips(box, data.suggestions, '', forTagline);
     } catch (error) {
       console.error('AI suggestion failed:', (await error?.context?.json?.().catch(() => null))?.error || error);
-      showChips(basicNames(place, tripDays()), 'AI is unavailable right now, so here are some basic ideas.');
+      showChips(box, basicNames(place, tripDays()), 'AI is unavailable right now, so here are some basic ideas.', forTagline);
     } finally {
-      button.disabled = false;
-      button.textContent = '✨ Suggest';
+      btn.disabled = false;
+      btn.textContent = '✨ Suggest';
     }
-  });
+  }
 
-  $('#trip-modal-close').addEventListener('click', () => (chips.hidden = true));
-  $('#trip-cancel').addEventListener('click', () => (chips.hidden = true));
-  $('#trip-form').addEventListener('submit', () => (chips.hidden = true));
+  button.addEventListener('click', () => suggest(button, chips, false));
+  tagButton.addEventListener('click', () => suggest(tagButton, tagChips, true));
+  $('#trip-form').addEventListener('submit', () => (chips.hidden = tagChips.hidden = true));
 });

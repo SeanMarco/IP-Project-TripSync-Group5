@@ -146,7 +146,7 @@
     const [trips, saved, dests, exps] = await Promise.all([
       c.from('trips').select('*').order('start_date', { ascending: true }),
       c.from('saved_places').select('*').order('created_at', { ascending: false }),
-      c.from('destinations').select('*').order('created_at', { ascending: true }).limit(3),
+      c.from('destinations').select('*'),
       c.from('expenses').select('trip_id, amount')
     ]);
 
@@ -158,13 +158,14 @@
 
     state.trips = trips.data || [];
     state.saved = saved.data || [];
-    state.destinations = dests.data || [];
+    state.destinations = (dests.data || []).sort(() => Math.random() - 0.5).slice(0, 6);
     state.expenses = exps.data || [];
 
     renderStats();
     renderTrips();
     renderDestinations();
     await loadFeaturedDetails();
+    if (await TravelAPI.fillCovers(c, state.trips)) renderTrips();
   }
 
   async function loadFeaturedDetails() {
@@ -260,6 +261,7 @@
           <div class="photo-overlay"></div>
           <span class="trip-tag"><span class="status-dot white-dot"></span> ${t.start_date <= today ? 'HAPPENING NOW' : 'NEXT ADVENTURE'}</span>
           <button class="photo-menu" aria-label="Trip options" type="button">···</button>
+          ${/wikimedia\.org/.test(t.cover_url || '') ? '<span class="photo-credit">Photo: Wikimedia Commons</span>' : ''}
           <div class="trip-menu" id="trip-menu" hidden>
             <button type="button" data-action="edit">✎ Edit trip</button>
             <button type="button" data-action="delete" class="danger">✕ Delete trip</button>
@@ -311,12 +313,35 @@
       .map((d) => {
         const saved = savedIds.has(d.id);
         return `
-        <div class="destination-card${safeUrl(d.image_url) ? '' : ' photo-fallback'}"${bgStyle(d.image_url)}>
+        <div class="destination-card${safeUrl(d.image_url) ? '' : ' photo-fallback'}"${bgStyle(d.image_url)} data-plan="${esc(d.id)}" role="button" tabindex="0" aria-label="Plan a trip to ${esc(d.name)}">
           <span class="destination-save" role="button" tabindex="0" data-id="${esc(d.id)}" aria-label="${saved ? 'Remove' : 'Save'} ${esc(d.name)}">${saved ? '♥' : '♡'}</span>
+          <em class="plan-cta">✈ Plan a trip</em>
           <div>${d.country ? `<span>${esc(d.country.toUpperCase())}</span>` : ''}<strong>${esc(d.name)}</strong>${d.tagline ? `<small>${esc(d.tagline)}</small>` : ''}</div>
         </div>`;
       })
       .join('');
+
+    state.destinations.filter((d) => !safeUrl(d.image_url)).forEach(async (d) => {
+      const page = await TravelAPI.wiki(d.name, d.country || '');
+      if (!page?.photo) return;
+      d.image_url = page.photo;
+      const card = grid.querySelector(`[data-plan="${d.id}"]`);
+      if (!card) return;
+      card.classList.remove('photo-fallback');
+      card.style.backgroundImage = `url('${safeUrl(page.photo)}')`;
+    });
+  }
+
+  function planFromDestination(id) {
+    const d = state.destinations.find((x) => x.id === id);
+    if (!d) return;
+    hasDraft = false;
+    openTripModal();
+    if ($('#trip-modal').hidden) return;
+    $('#trip-destination').value = d.name;
+    $('#trip-country').value = d.country || '';
+    setDestHint(`✈️ Planning a trip to ${d.name}! Pick your dates, press ✨ for a trip name or 📷 for a photo.`, true);
+    $('#trip-start').focus();
   }
 
   function renderTimeline() {
@@ -643,6 +668,7 @@
   };
 
   function panelEmpty(heading, message) {
+    $('#dest-info').hidden = true;
     $('#map').hidden = true;
     $('#weather').hidden = true;
     $('#map-open').hidden = true;
@@ -654,15 +680,8 @@
 
   async function geocodeTrip(trip) {
     if (!gm) {
-      try {
-        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&name=${encodeURIComponent(trip.destination)}`);
-        const results = (await res.json()).results || [];
-        const hit = results.find((r) => trip.country && r.country?.toLowerCase() === trip.country.toLowerCase()) || results[0];
-        return hit ? { lat: hit.latitude, lng: hit.longitude, placeId: null } : null;
-      } catch (error) {
-        console.error('Geocode error:', error);
-        return null;
-      }
+      const place = await TravelAPI.geocode(trip.destination, trip.country || '');
+      return place ? { lat: place.lat, lng: place.lng, placeId: null } : null;
     }
     try {
       const { places } = await gm.Place.searchByText({
@@ -800,6 +819,44 @@
       console.error('Weather error:', error);
       if (token === panelToken) $('#weather').hidden = true;
     });
+    renderDestInfo(t, token);
+  }
+
+  const money = (amount, currency) =>
+    new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+
+  async function renderDestInfo(t, token) {
+    const box = $('#dest-info');
+    box.hidden = true;
+    const place = await TravelAPI.geocode(t.destination, t.country || '');
+    const code = place?.countryCode;
+    const [page, info, holidays] = await Promise.all([
+      TravelAPI.wiki(t.destination, t.country || ''),
+      code ? TravelAPI.country(code) : null,
+      code ? TravelAPI.holidays(code, t.start_date, t.end_date) : null
+    ]);
+    const currency = info?.currency?.split(',')[0];
+    const rate = currency && currency !== 'PHP' ? await TravelAPI.rate('PHP', currency) : null;
+    if (token !== panelToken) return;
+
+    const amount = Number(t.budget) > 0 ? Number(t.budget) : 1000;
+    const rows = [];
+    if (info) {
+      const languages = (info.languages || []).map((l) => l.name).join(', ');
+      rows.push(['🌏', `${info.emoji} ${info.name}`, [info.capital && `Capital: ${info.capital}`, languages].filter(Boolean).join(' · ')]);
+    }
+    if (currency === 'PHP') rows.push(['💱', 'Philippine peso', 'Same currency as home']);
+    else if (rate) rows.push(['💱', `${peso(amount)} ≈ ${money(amount * rate, currency)}`, `${Number(t.budget) > 0 ? 'Your budget in local money' : 'Local currency'} · 1 PHP = ${rate} ${currency}`]);
+    if (holidays) {
+      rows.push(holidays.length
+        ? ['🎉', `${holidays.length} public holiday${holidays.length === 1 ? '' : 's'} during your trip`, holidays.slice(0, 3).map((h) => `${h.name} (${shortDate(h.date)})`).join(', ')]
+        : ['🗓️', 'No public holidays during your trip', 'Shops and offices should keep normal hours']);
+    }
+
+    box.innerHTML =
+      rows.map(([icon, title, sub]) => `<div class="info-row"><span>${icon}</span><div><strong>${esc(title)}</strong><small>${esc(sub)}</small></div></div>`).join('') +
+      (page?.extract ? `<p class="wiki-extract">${esc(page.extract)}</p>${page.url ? `<a class="text-link" href="${esc(page.url)}" target="_blank" rel="noopener">Read on Wikipedia <span>↗</span></a>` : ''}` : '');
+    box.hidden = !box.innerHTML;
   }
 
   // ---------- plan a trip ----------
@@ -807,6 +864,7 @@
   let saving = false;
   let lastFocus = null;
   let editingTrip = null;
+  let hasDraft = false;
 
   function showTripError(message) {
     const el = $('#trip-form-error');
@@ -821,10 +879,18 @@
     }
     lastFocus = document.activeElement;
     editingTrip = trip;
-    $('#trip-form').reset();
-    $('#ai-chips').hidden = true;
     $('#trip-modal-title').textContent = trip ? 'Edit trip' : 'Plan a new trip';
     $('#trip-submit-label').textContent = trip ? 'Save changes' : 'Save trip';
+    $('#trip-reset').hidden = !!trip;
+    $('#trip-modal').hidden = false;
+    document.body.classList.add('modal-open');
+    $('#trip-destination').focus();
+    if (!trip && hasDraft) return;
+
+    $('#trip-form').reset();
+    $('#ai-chips').hidden = true;
+    $('#ai-tagline-chips').hidden = true;
+    $('#trip-country').dataset.auto = '';
     if (trip) {
       $('#trip-title').value = trip.title;
       $('#trip-destination').value = trip.destination;
@@ -842,12 +908,10 @@
     sessionToken = null;
     closeSuggestions();
     setDestHint(defaultHint());
-    $('#trip-modal').hidden = false;
-    document.body.classList.add('modal-open');
-    $('#trip-title').focus();
   }
 
   function closeTripModal() {
+    hasDraft = !editingTrip;
     $('#trip-modal').hidden = true;
     document.body.classList.remove('modal-open');
     if (lastFocus && lastFocus.focus) lastFocus.focus();
@@ -923,6 +987,7 @@
     state.selectedId = data.id;
     showToast(editingTrip ? 'Trip updated.' : 'Trip saved to your dashboard.');
     closeTripModal();
+    hasDraft = false;
     await refreshTrips();
   }
 
@@ -978,14 +1043,18 @@
 
     $('#destination-grid')?.addEventListener('click', (event) => {
       const heart = event.target.closest('.destination-save');
+      const card = event.target.closest('[data-plan]');
       if (heart) toggleSaved(heart.dataset.id);
+      else if (card) planFromDestination(card.dataset.plan);
     });
     $('#destination-grid')?.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       const heart = event.target.closest('.destination-save');
-      if (!heart) return;
+      const card = event.target.closest('[data-plan]');
+      if (!heart && !card) return;
       event.preventDefault();
-      toggleSaved(heart.dataset.id);
+      if (heart) toggleSaved(heart.dataset.id);
+      else planFromDestination(card.dataset.plan);
     });
 
     document.addEventListener('click', async (event) => {
@@ -1019,6 +1088,10 @@
     });
     $('#trip-modal-close')?.addEventListener('click', closeTripModal);
     $('#trip-cancel')?.addEventListener('click', closeTripModal);
+    $('#trip-reset')?.addEventListener('click', () => {
+      hasDraft = false;
+      openTripModal();
+    });
     $('#trip-modal')?.addEventListener('click', (event) => {
       if (event.target === event.currentTarget) closeTripModal();
     });

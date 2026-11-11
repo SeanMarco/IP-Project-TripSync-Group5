@@ -402,7 +402,7 @@ console.log("Login successful:", data.user.id);
 
 // Redirect to the dashboard after a short delay.
 setTimeout(() => {
-  window.location.href = "dashboard.html";
+  window.location.href = "../dashboard/dashboard.html";
 }, 500);
 
     } catch (error) {
@@ -497,7 +497,7 @@ setTimeout(() => {
         const { error } = await client.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: `${window.location.origin}/index.html`
+            redirectTo: `${window.location.origin}/index/index.html`
           }
         });
 
@@ -549,7 +549,7 @@ setTimeout(() => {
         console.log("An active Supabase session exists.");
 
         // Enable if you want automatic dashboard redirection:
-        window.location.href = "dashboard.html";
+        window.location.href = "../dashboard/dashboard.html";
       }
     } catch (error) {
       console.error("Session check error:", error.message);

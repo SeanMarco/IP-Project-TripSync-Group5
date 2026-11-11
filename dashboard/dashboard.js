@@ -96,7 +96,7 @@
       if (error) throw error;
       const session = data?.session;
       if (!session && !previewMode) {
-        window.location.replace('index.html');
+        window.location.replace('../index/index.html');
         return null;
       }
       if (session?.user) {
@@ -124,7 +124,7 @@
         const { error } = await client.auth.signOut();
         if (error) throw error;
       }
-      window.location.href = 'index.html';
+      window.location.href = '../index/index.html';
     } catch (error) {
       console.error('Logout failed:', error);
       showToast(error.message || 'Could not log out. Please try again.');

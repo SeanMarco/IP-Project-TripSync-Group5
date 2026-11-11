@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
@@ -64,6 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loginTab.classList.toggle("active", isLogin);
     signupTab.classList.toggle("active", !isLogin);
+    loginTab.parentElement.classList.toggle("signup-active", !isLogin);
+
+    const shownForm = isLogin ? loginForm : signupForm;
+    shownForm.classList.remove("form-enter");
+    void shownForm.offsetWidth;
+    shownForm.classList.add("form-enter");
 
     if (authSubtitle) {
       authSubtitle.innerHTML = isLogin
@@ -105,6 +110,34 @@ document.addEventListener("DOMContentLoaded", () => {
       setMode(loginForm.classList.contains("hidden") ? "login" : "signup");
     });
   }
+
+  $("theme-toggle").addEventListener("click", () => {
+    const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("theme", theme);
+  });
+
+  const slides = document.querySelectorAll(".hero-slide");
+  const dots = document.querySelectorAll(".hero-dot");
+  let currentSlide = 0;
+
+  function showSlide(index) {
+    slides[currentSlide].classList.remove("active");
+    dots[currentSlide].classList.remove("active");
+    currentSlide = index;
+    slides[currentSlide].classList.add("active");
+    dots[currentSlide].classList.add("active");
+  }
+
+  let slideTimer = setInterval(() => showSlide((currentSlide + 1) % slides.length), 10000);
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener("click", () => {
+      showSlide(i);
+      clearInterval(slideTimer);
+      slideTimer = setInterval(() => showSlide((currentSlide + 1) % slides.length), 10000);
+    });
+  });
 
   // ==========================================
   // PASSWORD VISIBILITY

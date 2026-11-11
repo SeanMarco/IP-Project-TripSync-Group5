@@ -1,5 +1,5 @@
-<<<<<<< HEAD
 # TripSync
+
 TripSync is a travel planning platform designed to make organizing trips easier and more convenient. It helps users plan their journeys, manage travel details, and keep everything organized in one place for a smoother and more enjoyable travel experience.
 =======
 # IP-Project-TripSync-Group5
@@ -27,4 +27,4 @@ Enrique Ray Rodriguez
   - Sign up
   - Landing Page
   - Profile Page
->>>>>>> 80ad25f1d94b6b39207dbd0664f7e0b7f40e272a
+

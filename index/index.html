@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1769ed">
+  <meta name="theme-color" content="#2c93d6">
   <title>TripSync | Your Next Adventure Starts Here</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +18,12 @@
 
     <!-- LEFT: Travel hero -->
     <section class="hero">
+      <div class="hero-slides">
+        <div class="hero-slide active" style="background-image: url('https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=1800&q=85')"></div>
+        <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1800&q=85')"></div>
+        <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1800&q=85')"></div>
+      </div>
+
       <header class="hero-header">
         <a href="#" class="brand brand-light">
           <i class="fa-solid fa-paper-plane"></i>
@@ -82,6 +88,12 @@
       <div class="hero-footer">
         <p>Better trips.<br>Better memories.</p>
         <span class="footer-line"></span>
+
+        <div class="hero-dots">
+          <button class="hero-dot active" type="button" aria-label="Slide 1"></button>
+          <button class="hero-dot" type="button" aria-label="Slide 2"></button>
+          <button class="hero-dot" type="button" aria-label="Slide 3"></button>
+        </div>
       </div>
 
       <span class="hero-decoration decoration-one"></span>
@@ -90,6 +102,11 @@
 
     <!-- RIGHT: Authentication -->
     <section class="auth-section">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon"></i>
+        <i class="fa-solid fa-sun"></i>
+      </button>
+
       <div class="auth-card" id="auth-card">
 
         <div class="auth-brand">
@@ -271,7 +288,7 @@
           </button>
 
           <button type="button" class="social-button" data-provider="Facebook">
-            <i class="fa-brands fa-facebook facaebook-icon"></i>
+            <i class="fa-brands fa-facebook facebook-icon"></i>
             <span>Facebook</span>
           </button>
 

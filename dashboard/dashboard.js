@@ -1,5 +1,11 @@
 (() => {
   const $ = (selector) => document.querySelector(selector);
+
+  $('#theme-toggle').addEventListener('click', () => {
+    const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  });
   const toast = $('#toast');
   let toastTimer;
 
@@ -12,7 +18,8 @@
     expenses: [],
     itinerary: [],
     checklist: [],
-    featured: null
+    featured: null,
+    selectedId: new URLSearchParams(location.search).get('trip')
   };
 
   function getSupabaseClient() {
@@ -139,7 +146,7 @@
     const [trips, saved, dests, exps] = await Promise.all([
       c.from('trips').select('*').order('start_date', { ascending: true }),
       c.from('saved_places').select('*').order('created_at', { ascending: false }),
-      c.from('destinations').select('*').order('created_at', { ascending: true }).limit(6),
+      c.from('destinations').select('*').order('created_at', { ascending: true }).limit(3),
       c.from('expenses').select('trip_id, amount')
     ]);
 
@@ -198,9 +205,6 @@
       navCount.hidden = upcoming.length === 0;
     }
 
-    const places = new Set(state.saved.map((s) => String(s.destination || s.name).trim().toLowerCase()));
-    $('#stat-saved').textContent = pad2(state.saved.length);
-    $('#stat-saved-foot').textContent = plural(places.size, 'destination');
 
     const days = past.reduce((sum, t) => sum + tripDays(t), 0);
     $('#stat-days').textContent = days;
@@ -227,7 +231,7 @@
 
   function renderTrips() {
     const upcoming = state.trips.filter((t) => !isPast(t));
-    state.featured = upcoming[0] || null;
+    state.featured = upcoming.find((t) => t.id === state.selectedId) || upcoming[0] || null;
 
     const featuredBox = $('#featured-trip');
     const listBox = $('#trip-list');
@@ -256,6 +260,10 @@
           <div class="photo-overlay"></div>
           <span class="trip-tag"><span class="status-dot white-dot"></span> ${t.start_date <= today ? 'HAPPENING NOW' : 'NEXT ADVENTURE'}</span>
           <button class="photo-menu" aria-label="Trip options" type="button">···</button>
+          <div class="trip-menu" id="trip-menu" hidden>
+            <button type="button" data-action="edit">✎ Edit trip</button>
+            <button type="button" data-action="delete" class="danger">✕ Delete trip</button>
+          </div>
           <div class="photo-caption">
             ${t.country ? `<span class="country-label">${esc(t.country.toUpperCase())}</span>` : ''}
             <h3>${esc(place)}</h3>
@@ -274,7 +282,7 @@
       </article>`;
 
     listBox.innerHTML = upcoming
-      .slice(1)
+      .filter((m) => m.id !== t.id)
       .map((m) => {
         const st = STATUS[m.status] || STATUS.planning;
         const name = [m.destination, m.country].filter(Boolean).join(', ') || m.title;
@@ -286,7 +294,7 @@
             <p>${esc(m.tagline || m.title)}</p>
             <div class="mini-trip-meta"><span>${esc(monDay(m.start_date))} – ${esc(monDay(m.end_date))}, ${parseDate(m.end_date).getFullYear()}</span><span>·</span><span>${plural(tripDays(m), 'day')}</span></div>
           </div>
-          <button class="mini-arrow" type="button" aria-label="View ${esc(name)} trip" data-trip="${esc(name)}">↗</button>
+          <button class="mini-arrow" type="button" aria-label="Open ${esc(name)} trip" data-trip-id="${esc(m.id)}">↗</button>
         </article>`;
       })
       .join('');
@@ -486,7 +494,7 @@
   const defaultHint = () =>
     gm
       ? 'Start typing and pick a suggestion. We’ll fill in the country and map location for you.'
-      : 'Type your destination.';
+      : 'Type a destination and the country fills in by itself.';
 
   function setDestHint(text, ok = false) {
     const el = $('#dest-hint');
@@ -725,6 +733,7 @@
 
     const label = [t.destination, t.country].filter(Boolean).join(', ');
     await mapsReady;
+    $('#map-panel').hidden = !gm;
     if (token !== panelToken) return;
 
     let lat = t.latitude != null ? Number(t.latitude) : null;
@@ -777,6 +786,7 @@
 
   let saving = false;
   let lastFocus = null;
+  let editingTrip = null;
 
   function showTripError(message) {
     const el = $('#trip-form-error');
@@ -784,13 +794,29 @@
     el.hidden = false;
   }
 
-  function openTripModal() {
+  function openTripModal(trip = null) {
     if (!state.user || !state.client) {
       showToast('Sign in to plan a trip.');
       return;
     }
     lastFocus = document.activeElement;
+    editingTrip = trip;
     $('#trip-form').reset();
+    $('#ai-chips').hidden = true;
+    $('#trip-modal-title').textContent = trip ? 'Edit trip' : 'Plan a new trip';
+    $('#trip-submit-label').textContent = trip ? 'Save changes' : 'Save trip';
+    if (trip) {
+      $('#trip-title').value = trip.title;
+      $('#trip-destination').value = trip.destination;
+      $('#trip-country').value = trip.country || '';
+      $('#trip-start').value = trip.start_date;
+      $('#trip-end').value = trip.end_date;
+      $('#trip-travelers').value = trip.travelers || 1;
+      $('#trip-status').value = trip.status;
+      $('#trip-budget').value = Number(trip.budget) || '';
+      $('#trip-tagline').value = trip.tagline || '';
+      $('#trip-cover').value = trip.cover_url || '';
+    }
     $('#trip-form-error').hidden = true;
     selectedPlace = null;
     sessionToken = null;
@@ -836,30 +862,35 @@
     submit.disabled = true;
     label.textContent = 'Saving…';
 
-    const { data, error } = await state.client
-      .from('trips')
-      .insert({
-        user_id: state.user.id,
-        title,
-        destination,
-        country: country || null,
-        tagline: tagline || null,
-        start_date: start,
-        end_date: end,
-        travelers,
-        status: $('#trip-status').value,
-        budget,
-        cover_url: cover || null,
-        latitude: selectedPlace ? selectedPlace.lat : null,
-        longitude: selectedPlace ? selectedPlace.lng : null,
-        place_id: selectedPlace ? selectedPlace.placeId : null
-      })
-      .select()
-      .single();
+    const sameDestination = editingTrip && editingTrip.destination === destination && (editingTrip.country || '') === country;
+    const coords = selectedPlace
+      ? { latitude: selectedPlace.lat, longitude: selectedPlace.lng, place_id: selectedPlace.placeId }
+      : sameDestination
+        ? { latitude: editingTrip.latitude, longitude: editingTrip.longitude, place_id: editingTrip.place_id }
+        : { latitude: null, longitude: null, place_id: null };
+
+    const fields = {
+      title,
+      destination,
+      country: country || null,
+      tagline: tagline || null,
+      start_date: start,
+      end_date: end,
+      travelers,
+      status: $('#trip-status').value,
+      budget,
+      cover_url: cover || null,
+      ...coords
+    };
+
+    const query = editingTrip
+      ? state.client.from('trips').update(fields).eq('id', editingTrip.id)
+      : state.client.from('trips').insert({ user_id: state.user.id, ...fields });
+    const { data, error } = await query.select().single();
 
     saving = false;
     submit.disabled = false;
-    label.textContent = 'Save trip';
+    label.textContent = editingTrip ? 'Save changes' : 'Save trip';
 
     if (error) {
       console.error('Save trip error:', error);
@@ -867,19 +898,34 @@
       return;
     }
 
-    state.trips.push(data);
+    state.trips = state.trips.filter((t) => t.id !== data.id).concat(data);
     state.trips.sort((a, b) => a.start_date.localeCompare(b.start_date));
+    state.selectedId = data.id;
+    showToast(editingTrip ? 'Trip updated.' : 'Trip saved to your dashboard.');
     closeTripModal();
+    await refreshTrips();
+  }
+
+  async function refreshTrips() {
     renderStats();
     renderTrips();
     await loadFeaturedDetails();
-    showToast('Trip saved to your dashboard.');
+  }
+
+  async function deleteTrip(trip) {
+    if (!window.confirm(`Delete "${trip.title}"? Its checklist, itinerary and expenses will be deleted too.`)) return;
+    const { error } = await state.client.from('trips').delete().eq('id', trip.id);
+    if (error) return showToast(error.message || 'Could not delete that trip.');
+    state.trips = state.trips.filter((t) => t.id !== trip.id);
+    state.expenses = state.expenses.filter((e) => e.trip_id !== trip.id);
+    state.selectedId = null;
+    showToast('Trip deleted.');
+    await refreshTrips();
   }
 
   // ---------- init ----------
 
   document.addEventListener('DOMContentLoaded', async () => {
-    $('#footer-year').textContent = new Date().getFullYear();
 
     mapsReady = loadGoogleMaps();
     bindDestinationSuggest();
@@ -922,10 +968,26 @@
       toggleSaved(heart.dataset.id);
     });
 
-    document.addEventListener('click', (event) => {
-      const arrow = event.target.closest('[data-trip]');
-      if (arrow) showToast(`${arrow.dataset.trip} details are coming soon.`);
-      if (event.target.closest('.photo-menu')) showToast('More TripSync features are coming soon.');
+    document.addEventListener('click', async (event) => {
+      const menu = $('#trip-menu');
+      const arrow = event.target.closest('[data-trip-id]');
+      const action = event.target.closest('#trip-menu [data-action]');
+
+      if (event.target.closest('.photo-menu')) {
+        menu.hidden = !menu.hidden;
+        return;
+      }
+      if (menu) menu.hidden = true;
+
+      if (arrow) {
+        state.selectedId = arrow.dataset.tripId;
+        await refreshTrips();
+        $('#my-trips').scrollIntoView({ behavior: 'smooth' });
+      }
+      if (action && state.featured) {
+        if (action.dataset.action === 'edit') openTripModal(state.featured);
+        else deleteTrip(state.featured);
+      }
     });
 
     document.querySelectorAll('.more-button, .notification-button, #sidebar-profile').forEach((button) => {

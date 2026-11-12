@@ -44,8 +44,6 @@
     const parts = name.trim().split(/\s+/);
     const initials = (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2)).toUpperCase();
     $('#top-name').textContent = parts[0];
-    $('#sidebar-name').textContent = name;
-    $('#avatar-initials').textContent = initials;
     $('#top-avatar').textContent = initials;
   }
 
@@ -196,7 +194,6 @@
       document.documentElement.dataset.theme = theme;
       localStorage.setItem('theme', theme);
     });
-    $('#mobile-menu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
     $('#logout-button').addEventListener('click', async () => {
       await client?.auth.signOut();
       location.href = '../../index/index.html';

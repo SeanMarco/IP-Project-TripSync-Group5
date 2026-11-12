@@ -64,6 +64,28 @@ const TravelAPI = (() => {
     return lists.flat().filter((h) => h.date >= start && h.date <= end);
   });
 
+  const skipPlace = /^(capital |highly urbanized |component |independent )?(city|province|municipality|town|village|barangay|district|region|neighbou?rhood|suburb|island group)\b|\b(school|university|college|hospital|company|station|road|street|highway|electoral|census|subdivision)\b/i;
+
+  const nearby = (lat, lng, radius = 5000) => memo(`nearby:${lat.toFixed(4)},${lng.toFixed(4)}:${radius}`, async () => {
+    const params = new URLSearchParams({
+      action: 'query', generator: 'geosearch', ggscoord: `${lat}|${lng}`, ggsradius: radius, ggslimit: 50,
+      prop: 'coordinates|pageimages|description|info', piprop: 'thumbnail', pithumbsize: 500, inprop: 'url',
+      format: 'json', origin: '*'
+    });
+    const { query } = await getJSON(`https://en.wikipedia.org/w/api.php?${params}`);
+    return Object.values(query?.pages || {})
+      .filter((p) => p.coordinates && !skipPlace.test(p.description || ''))
+      .map((p) => ({
+        id: p.pageid, name: p.title, description: p.description || '', photo: p.thumbnail?.source || null,
+        url: p.fullurl, lat: p.coordinates[0].lat, lng: p.coordinates[0].lon
+      }));
+  });
+
+  const findPlace = (q) => memo(`find:${q}`, async () =>
+    (await getJSON(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=${encodeURIComponent(q)}`))
+      .map((r) => ({ name: r.display_name, lat: Number(r.lat), lng: Number(r.lon) }))
+  );
+
   async function fillCovers(client, trips) {
     let changed = false;
     for (const trip of trips.filter((t) => /wikimedia\.org.*\/1600px-/.test(t.cover_url || ''))) {
@@ -77,5 +99,5 @@ const TravelAPI = (() => {
     return changed;
   }
 
-  return { geocode, wiki, country, rate, holidays, fillCovers };
+  return { geocode, wiki, country, rate, holidays, nearby, findPlace, fillCovers };
 })();

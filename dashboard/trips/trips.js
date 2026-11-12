@@ -24,6 +24,8 @@
   };
   const tripDays = (t) => Math.round((parseDate(t.end_date) - parseDate(t.start_date)) / 86400000) + 1;
   const isPast = (t) => t.status === 'completed' || t.end_date < today();
+  const isNow = (t) => !isPast(t) && t.start_date <= today();
+  const group = (t) => (isPast(t) ? 'past' : isNow(t) ? 'now' : 'upcoming');
   const shortDate = (s) => parseDate(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const STATUS = { planning: 'Planning', booked: 'Booked', saved: 'Saved', completed: 'Completed' };
 
@@ -53,7 +55,7 @@
     const meta = user.user_metadata || {};
     setUserName([meta.first_name, meta.last_name].filter(Boolean).join(' ') || user.email.split('@')[0]);
 
-    const { data: rows, error } = await client.from('trips').select('*').order('start_date', { ascending: true });
+    const { data: rows, error } = await client.from('trips').select('*').is('deleted_at', null).order('start_date', { ascending: true });
     if (error) return showToast(error.message);
     trips = rows;
     render();
@@ -62,15 +64,19 @@
 
   function render() {
     const upcoming = trips.filter((t) => !isPast(t));
+    const nowCount = trips.filter(isNow).length;
     $('#count-all').textContent = trips.length;
-    $('#count-upcoming').textContent = upcoming.length;
+    $('#count-now').textContent = nowCount;
+    $('#count-upcoming').textContent = upcoming.length - nowCount;
     $('#count-past').textContent = trips.length - upcoming.length;
+    $('#tab-now').hidden = !nowCount;
+    if (filter === 'now' && !nowCount) filter = 'all';
     $('#nav-trip-count').textContent = upcoming.length;
     $('#nav-trip-count').hidden = !upcoming.length;
 
     const search = $('#trip-search').value.trim().toLowerCase();
     const shown = trips
-      .filter((t) => filter === 'all' || (filter === 'past') === isPast(t))
+      .filter((t) => filter === 'all' || group(t) === filter)
       .filter((t) => [t.title, t.destination, t.country].join(' ').toLowerCase().includes(search));
 
     if (!shown.length) {
@@ -82,9 +88,9 @@
       const place = [t.destination, t.country].filter(Boolean).join(', ');
       const cover = /^https?:\/\//i.test(t.cover_url || '') ? ` style="background-image:url('${esc(t.cover_url)}')"` : '';
       return `
-      <article class="trip-card${isPast(t) ? ' is-past' : ''}">
+      <article class="trip-card${isPast(t) ? ' is-past' : ''}${isNow(t) ? ' is-now' : ''}">
         <div class="trip-card-photo${cover ? '' : ' photo-fallback'}"${cover}>
-          <span class="mini-status status-${esc(t.status)}">${STATUS[t.status] || 'Planning'}</span>
+          ${isNow(t) ? '<span class="mini-status status-now">● Happening now</span>' : isPast(t) ? '<span class="mini-status status-completed">✓ Finished</span>' : `<span class="mini-status status-${esc(t.status)}">${STATUS[t.status] || 'Planning'}</span>`}
         </div>
         <div class="trip-card-body">
           <h3>${esc(t.title)}</h3>
@@ -96,6 +102,7 @@
             <span>♧ ${plural(t.travelers || 1, 'traveler')}</span>
             <span>₱ ${peso(t.budget).slice(1)}</span>
           </div>
+          ${isNow(t) ? `<a class="now-link" href="../nearby/nearby.html?trip=${esc(t.id)}">📍 Where to go today →</a>` : ''}
         </div>
         <div class="trip-card-actions">
           <a class="ghost-button" href="../dashboard.html?trip=${esc(t.id)}">Open</a>
@@ -166,6 +173,8 @@
 
     if (!fields.title || !fields.destination || !fields.start_date || !fields.end_date) return showError('Please fill in the trip name, destination and both dates.');
     if (fields.end_date < fields.start_date) return showError('Your end date can’t be before your start date.');
+    const clash = trips.find((t) => t.id !== editingTrip?.id && fields.start_date <= t.end_date && fields.end_date >= t.start_date);
+    if (clash) return showError(`These dates overlap "${clash.title}" (${shortDate(clash.start_date)} – ${shortDate(clash.end_date)}). Pick other dates.`);
     if (!Number.isInteger(fields.travelers) || fields.travelers < 1 || fields.travelers > 99) return showError('Travelers must be a whole number from 1 to 99.');
     if (fields.budget < 0) return showError('Budget must be 0 or more.');
     if (fields.cover_url && !/^https?:\/\//i.test(fields.cover_url)) return showError('The cover photo link must start with http:// or https://');
@@ -190,8 +199,8 @@
   }
 
   async function deleteTrip(trip) {
-    if (!confirm(`Delete "${trip.title}"? Its checklist, itinerary and expenses will be deleted too.`)) return;
-    const { error } = await client.from('trips').delete().eq('id', trip.id);
+    if (!confirm(`Delete "${trip.title}"?`)) return;
+    const { error } = await client.from('trips').update({ deleted_at: new Date().toISOString() }).eq('id', trip.id);
     if (error) return showToast(error.message);
     trips = trips.filter((t) => t.id !== trip.id);
     showToast('Trip deleted.');
@@ -212,7 +221,7 @@
 
     document.querySelectorAll('.filter-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
-        document.querySelector('.filter-tab.active').classList.remove('active');
+        document.querySelector('.filter-tab.active')?.classList.remove('active');
         tab.classList.add('active');
         filter = tab.dataset.filter;
         render();

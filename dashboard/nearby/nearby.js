@@ -58,7 +58,7 @@
     const meta = user.user_metadata || {};
     setUserName([meta.first_name, meta.last_name].filter(Boolean).join(' ') || user.email.split('@')[0]);
 
-    const { data: rows, error } = await client.from('trips').select('*').order('start_date', { ascending: true });
+    const { data: rows, error } = await client.from('trips').select('*').is('deleted_at', null).order('start_date', { ascending: true });
     if (error) return showToast(error.message);
     trips = rows;
     if (!trips.length) return renderEmpty();
@@ -145,8 +145,8 @@
   function drawMap() {
     if (typeof L === 'undefined') return ($('#near-map').hidden = true);
     if (!map) {
-      map = L.map('near-map', { scrollWheelZoom: false });
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+      map = L.map('near-map', { scrollWheelZoom: false }).setView([origin.lat, origin.lng], 13);
+      TravelAPI.addBaseMap(map);
       layer = L.layerGroup().addTo(map);
     }
     layer.clearLayers();
@@ -166,7 +166,7 @@
     const today = todayStr();
     const date = today >= trip.start_date && today <= trip.end_date ? today : trip.start_date;
     const { error } = await client.from('itinerary_items').insert({
-      user_id: user.id, trip_id: trip.id, title: `Visit ${place.name}`, item_date: date, item_time: null, tag: 'Activity'
+      user_id: user.id, trip_id: trip.id, title: `Visit ${place.name}`, item_date: date, item_time: null, place: place.name, tag: 'Activity'
     });
     if (error) return showToast(error.message);
     showToast(`Added "${place.name}" to your itinerary.`);

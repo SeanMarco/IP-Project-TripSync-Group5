@@ -143,7 +143,7 @@
   async function loadData() {
     const c = state.client;
     const [trips, saved, dests, exps] = await Promise.all([
-      c.from('trips').select('*').order('start_date', { ascending: true }),
+      c.from('trips').select('*').is('deleted_at', null).order('start_date', { ascending: true }),
       c.from('saved_places').select('*').order('created_at', { ascending: false }),
       c.from('destinations').select('*'),
       c.from('expenses').select('trip_id, amount')
@@ -284,7 +284,7 @@
     listBox.innerHTML = upcoming
       .filter((m) => m.id !== t.id)
       .map((m) => {
-        const st = STATUS[m.status] || STATUS.planning;
+        const st = m.start_date <= today ? { label: '● Happening now', cls: 'now-status' } : STATUS[m.status] || STATUS.planning;
         const name = [m.destination, m.country].filter(Boolean).join(', ') || m.title;
         return `
         <article class="mini-trip">
@@ -342,15 +342,29 @@
     }
   }
 
-  function planFromDestination(id) {
-    const d = state.destinations.find((x) => x.id === id);
+  const TOP_PLACES = [
+    ['Bali', 'Indonesia'], ['London', 'United Kingdom'], ['Dubai', 'United Arab Emirates'], ['Hanoi', 'Vietnam'], ['Paris', 'France'],
+    ['Rome', 'Italy'], ['Marrakech', 'Morocco'], ['Bangkok', 'Thailand'], ['Crete', 'Greece'], ['New York City', 'United States']
+  ];
+  let lastSurprise = -1;
+
+  function surprisePlace() {
+    let i;
+    do i = Math.floor(Math.random() * TOP_PLACES.length); while (i === lastSurprise);
+    lastSurprise = i;
+    const [name, country] = TOP_PLACES[i];
+    planFromDestination({ name, country }, `🎲 Surprise! ${name} is #${i + 1} on Tripadvisor's top destinations for 2026. Pick your dates, press ✨ for a trip name or 📷 for a photo.`);
+  }
+
+  function planFromDestination(id, hint) {
+    const d = typeof id === 'object' ? id : state.destinations.find((x) => x.id === id);
     if (!d) return;
     hasDraft = false;
     openTripModal();
     if ($('#trip-modal').hidden) return;
     $('#trip-destination').value = d.name;
     $('#trip-country').value = d.country || '';
-    setDestHint(`✈️ Planning a trip to ${d.name}! Pick your dates, press ✨ for a trip name or 📷 for a photo.`, true);
+    setDestHint(hint || `✈️ Planning a trip to ${d.name}! Pick your dates, press ✨ for a trip name or 📷 for a photo.`, true);
     $('#trip-start').focus();
   }
 
@@ -380,7 +394,7 @@
         (it, i) => `
       <div class="timeline-item${i === items.length - 1 ? ' last-item' : ''}">
         <span class="timeline-point${i === 0 ? ' active-point' : ''}"></span>
-        <div><strong>${esc(it.title)}</strong><p>${esc(weekday(it.item_date))}, ${esc(shortDate(it.item_date))} · ${esc(fmtTime(it.item_time))}</p>${it.tag ? `<span class="timeline-chip">${esc(it.tag)}</span>` : ''}</div>
+        <div><strong>${esc(it.title)}</strong><p>${esc(weekday(it.item_date))}, ${esc(shortDate(it.item_date))} · ${esc(fmtTime(it.item_time))}${it.item_time && it.end_time ? ` – ${esc(fmtTime(it.end_time))}` : ''}${it.place ? ` · 📍 ${esc(it.place)}` : ''}</p>${it.tag ? `<span class="timeline-chip">${esc(it.tag)}</span>` : ''}</div>
       </div>`
       )
       .join('');
@@ -715,7 +729,7 @@
       if (typeof L === 'undefined') return (box.hidden = true);
       if (!map) {
         map = L.map(box, { scrollWheelZoom: false }).setView([lat, lng], 10);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+        TravelAPI.addBaseMap(map);
         mapMarker = L.marker([lat, lng]).addTo(map);
       } else {
         map.setView([lat, lng], 10);
@@ -946,6 +960,8 @@
 
     if (!title || !destination || !start || !end) return showTripError('Please fill in the trip name, destination and both dates.');
     if (end < start) return showTripError('Your end date can’t be before your start date.');
+    const clash = state.trips.find((t) => t.id !== editingTrip?.id && start <= t.end_date && end >= t.start_date);
+    if (clash) return showTripError(`These dates overlap "${clash.title}" (${shortDate(clash.start_date)} – ${shortDate(clash.end_date)}). Pick other dates.`);
     if (!Number.isInteger(travelers) || travelers < 1 || travelers > 99) return showTripError('Travelers must be a whole number from 1 to 99.');
     if (!Number.isFinite(budget) || budget < 0) return showTripError('Budget must be 0 or more.');
     if (cover && !/^https?:\/\//i.test(cover)) return showTripError('The cover photo link must start with http:// or https://');
@@ -1008,8 +1024,8 @@
   }
 
   async function deleteTrip(trip) {
-    if (!window.confirm(`Delete "${trip.title}"? Its checklist, itinerary and expenses will be deleted too.`)) return;
-    const { error } = await state.client.from('trips').delete().eq('id', trip.id);
+    if (!window.confirm(`Delete "${trip.title}"?`)) return;
+    const { error } = await state.client.from('trips').update({ deleted_at: new Date().toISOString() }).eq('id', trip.id);
     if (error) return showToast(error.message || 'Could not delete that trip.');
     state.trips = state.trips.filter((t) => t.id !== trip.id);
     state.expenses = state.expenses.filter((e) => e.trip_id !== trip.id);
@@ -1104,10 +1120,7 @@
       $('#trip-start').focus();
       $('#hero-search').value = '';
     });
-    $('#hero-surprise')?.addEventListener('click', () => {
-      if (!state.destinations.length) return showToast('No destinations to pick from yet.');
-      planFromDestination(state.destinations[Math.floor(Math.random() * state.destinations.length)].id);
-    });
+    $('#hero-surprise')?.addEventListener('click', surprisePlace);
     $('#hero-chips')?.addEventListener('click', (event) => {
       const chip = event.target.closest('[data-plan]');
       if (chip) planFromDestination(chip.dataset.plan);

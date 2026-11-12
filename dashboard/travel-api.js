@@ -86,6 +86,37 @@ const TravelAPI = (() => {
       .map((r) => ({ name: r.display_name, lat: Number(r.lat), lng: Number(r.lon) }))
   );
 
+  const ENGLISH = ['coalesce', ['get', 'name:en'], ['get', 'name_en'], ['get', 'name:latin'], ['get', 'name']];
+
+  function englishLabels(gl) {
+    gl.getStyle().layers.forEach((layer) => {
+      if (layer.type !== 'symbol') return;
+      const field = gl.getLayoutProperty(layer.id, 'text-field');
+      if (field && JSON.stringify(field).includes('name')) gl.setLayoutProperty(layer.id, 'text-field', ENGLISH);
+    });
+  }
+
+  function addBaseMap(map) {
+    if (window.maplibregl && L.maplibreGL) {
+      let layer = null;
+      try {
+        layer = L.maplibreGL({
+          style: 'https://tiles.openfreemap.org/styles/liberty',
+          attribution: '&copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; OpenStreetMap'
+        });
+        layer.addTo(map);
+        const gl = layer.getMaplibreMap();
+        if (gl.isStyleLoaded()) englishLabels(gl);
+        else gl.once('load', () => englishLabels(gl));
+        return layer;
+      } catch (error) {
+        console.error('English map unavailable, using standard map:', error);
+        if (layer) map.removeLayer(layer);
+      }
+    }
+    return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  }
+
   async function fillCovers(client, trips) {
     let changed = false;
     for (const trip of trips.filter((t) => /wikimedia\.org.*\/1600px-/.test(t.cover_url || ''))) {
@@ -99,5 +130,5 @@ const TravelAPI = (() => {
     return changed;
   }
 
-  return { geocode, wiki, country, rate, holidays, nearby, findPlace, fillCovers };
+  return { geocode, wiki, country, rate, holidays, nearby, findPlace, fillCovers, addBaseMap };
 })();

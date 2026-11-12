@@ -26,6 +26,16 @@
     return `${h % 12 || 12}:${pad2(m)} ${h < 12 ? 'AM' : 'PM'}`;
   };
 
+  const minutes = (t) => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const duration = (a, b) => {
+    const d = minutes(b) - minutes(a);
+    return d >= 60 ? `${Math.floor(d / 60)}h${d % 60 ? ` ${d % 60}m` : ''}` : `${d}m`;
+  };
+  const mapLink = (place) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place}, ${trip.destination}`)}`;
+
   function tripDates(t) {
     const dates = [];
     for (let d = parseDate(t.start_date); toStr(d) <= t.end_date; d.setDate(d.getDate() + 1)) dates.push(toStr(d));
@@ -58,7 +68,7 @@
     const meta = user.user_metadata || {};
     setUserName([meta.first_name, meta.last_name].filter(Boolean).join(' ') || user.email.split('@')[0]);
 
-    const { data: rows, error } = await client.from('trips').select('*').order('start_date', { ascending: true });
+    const { data: rows, error } = await client.from('trips').select('*').is('deleted_at', null).order('start_date', { ascending: true });
     if (error) return showToast(error.message);
     trips = rows;
 
@@ -96,23 +106,36 @@
     $('#trip-summary').textContent = `${place} · ${nice(trip.start_date, { month: 'short', day: 'numeric' })} – ${nice(trip.end_date, { month: 'short', day: 'numeric', year: 'numeric' })} · ${dates.length} day${dates.length === 1 ? '' : 's'} · ${items.length} plan${items.length === 1 ? '' : 's'}`;
 
     const extra = [...new Set(items.map((i) => i.item_date))].filter((d) => !dates.includes(d));
+    const today = toStr(new Date());
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
     $('#days').innerHTML = [...dates, ...extra.sort()].map((date) => {
       const dayItems = items.filter((i) => i.item_date === date);
       const dayNo = dates.indexOf(date) + 1;
+      const timed = dayItems.filter((i) => i.item_time);
+      const lastEnd = timed.map((i) => i.end_time || i.item_time).sort().pop();
+      const span = timed.length ? `Starts ${fmtTime(timed[0].item_time)} · Ends ${fmtTime(lastEnd)}` : '';
       return `
-      <article class="day-card">
+      <article class="day-card${date === today ? ' is-today' : ''}">
         <div class="day-head">
-          <div><span class="day-no">${dayNo ? `Day ${dayNo}` : 'Outside trip dates'}</span><h3>${nice(date, { weekday: 'long', month: 'short', day: 'numeric' })}</h3></div>
+          <div><span class="day-no">${dayNo ? `Day ${dayNo}` : 'Outside trip dates'}${date === today ? ' · Today' : ''}</span><h3>${nice(date, { weekday: 'long', month: 'short', day: 'numeric' })}</h3>${span ? `<small class="day-span">${span}</small>` : ''}</div>
           <button class="text-link add-to-day" type="button" data-date="${date}">＋ Add</button>
         </div>
-        ${dayItems.length ? dayItems.map((i) => `
-          <div class="plan-row">
-            <span class="plan-time">${fmtTime(i.item_time) || 'Anytime'}</span>
+        ${dayItems.length ? dayItems.map((i, n) => {
+          const prev = dayItems.slice(0, n).find((p) => p.item_time && p.end_time && i.item_time && minutes(i.item_time) < minutes(p.end_time));
+          const isNow = date === today && i.item_time && i.end_time && nowMin >= minutes(i.item_time) && nowMin < minutes(i.end_time);
+          return `
+          <div class="plan-row${isNow ? ' is-now' : ''}">
+            <span class="plan-time">${i.item_time ? `<b>${fmtTime(i.item_time)}</b>${i.end_time ? `<small>to ${fmtTime(i.end_time)}</small>` : ''}` : '<b>Anytime</b>'}</span>
             <span class="plan-icon">${ICONS[i.tag] || '•'}</span>
-            <div class="plan-text"><strong>${esc(i.title)}</strong>${i.tag ? `<small>${esc(i.tag)}</small>` : ''}</div>
+            <div class="plan-text">
+              <strong>${esc(i.title)}${isNow ? ' <em class="now-chip">Now</em>' : ''}</strong>
+              <small>${[i.tag && esc(i.tag), i.item_time && i.end_time && duration(i.item_time, i.end_time), prev && `<span class="overlap">⚠ overlaps ${esc(prev.title)}</span>`].filter(Boolean).join(' · ')}</small>
+              ${i.place ? `<a class="plan-place" href="${mapLink(i.place)}" target="_blank" rel="noopener">📍 ${esc(i.place)}</a>` : ''}
+            </div>
             <button class="plan-btn" type="button" data-edit="${esc(i.id)}" aria-label="Edit">✎</button>
             <button class="plan-btn danger" type="button" data-delete="${esc(i.id)}" aria-label="Delete">✕</button>
-          </div>`).join('') : '<p class="day-empty">Nothing planned yet.</p>'}
+          </div>`;
+        }).join('') : '<p class="day-empty">Nothing planned yet.</p>'}
       </article>`;
     }).join('');
   }
@@ -135,6 +158,8 @@
     $('#item-date').value = current;
     $('#item-title').value = item ? item.title : '';
     $('#item-time').value = item?.item_time ? item.item_time.slice(0, 5) : '';
+    $('#item-end').value = item?.end_time ? item.end_time.slice(0, 5) : '';
+    $('#item-place').value = item?.place || '';
     setTag(item ? item.tag : null);
     $('#item-modal').hidden = false;
     document.body.classList.add('modal-open');
@@ -152,10 +177,16 @@
       title: $('#item-title').value.trim(),
       item_date: $('#item-date').value,
       item_time: $('#item-time').value || null,
+      end_time: $('#item-end').value || null,
+      place: $('#item-place').value.trim() || null,
       tag: selectedTag
     };
-    if (!fields.title) {
-      $('#item-form-error').textContent = 'Please describe the plan.';
+    const problem = !fields.title ? 'Please describe the plan.'
+      : fields.end_time && !fields.item_time ? 'Add a start time too, or clear the end time.'
+      : fields.end_time && fields.end_time <= fields.item_time ? 'The end time has to be after the start time.'
+      : '';
+    if (problem) {
+      $('#item-form-error').textContent = problem;
       $('#item-form-error').hidden = false;
       return;
     }
@@ -167,7 +198,7 @@
     const { data, error } = await query.select().single();
     $('#item-submit').disabled = false;
     if (error) {
-      $('#item-form-error').textContent = error.message;
+      $('#item-form-error').textContent = /end_time|place/.test(error.message) ? 'Run the new itinerary SQL in Supabase first (see the setup notes).' : error.message;
       $('#item-form-error').hidden = false;
       return;
     }

@@ -38,3 +38,12 @@
 [data-theme="dark"] .trip-card:hover{box-shadow:0 14px 34px rgba(0,0,0,.4)}
 
 @media(max-width:700px){.trip-search{width:100%}.trip-filters{width:100%}.filter-tab{flex:1;justify-content:center}}
+
+/* Happening now */
+.status-now{color:#fff;background:var(--red)}
+.trip-card.is-now{border-color:var(--red);box-shadow:0 0 0 3px #eb2f3314}
+.filter-tab[hidden]{display:none}
+.now-tab{color:var(--red)}
+.now-tab.active{background:var(--red);color:#fff}
+.now-link{display:inline-flex;margin-top:10px;font-size:12px;font-weight:800;color:var(--red)}
+.now-link:hover{text-decoration:underline}

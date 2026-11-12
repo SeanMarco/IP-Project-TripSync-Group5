@@ -1053,3 +1053,19 @@ body,
   background: #12322a;
   border-color: #1f5a45;
 }
+
+.reset-page {
+  grid-template-columns: 1fr;
+}
+
+.reset-page .auth-brand {
+  margin-bottom: 26px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--blue);
+}

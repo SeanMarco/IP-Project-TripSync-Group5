@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2c93d6" />
+  <title>TripSync — Saved places</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../dashboard.css" />
+  <link rel="stylesheet" href="../trips/trips.css" />
+  <link rel="stylesheet" href="saved.css" />
+</head>
+<body>
+  <div class="app-shell top-layout">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <a class="brand" href="../dashboard.html" aria-label="TripSync home"><span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span></a>
+        <nav class="top-links" aria-label="Main navigation">
+          <a class="top-link" href="../dashboard.html">Overview</a>
+          <a class="top-link" href="../trips/trips.html">My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
+          <a class="top-link" href="../itinerary/itinerary.html">Itinerary</a>
+          <a class="top-link" href="../budget/budget.html">Budget</a>
+          <a class="top-link" href="../nearby/nearby.html">Where to go</a>
+          <a class="top-link active" href="../saved/saved.html" aria-current="page">Saved</a>
+          <a class="top-link" href="../dashboard.html#destinations">Explore</a>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-button theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" type="button"><span class="moon">☾</span><span class="sun">☀</span></button>
+          <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
+          <span class="avatar avatar-small" id="top-avatar">TS</span>
+          <button class="icon-button logout-icon" id="logout-button" type="button" aria-label="Log out" title="Log out">↪</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="welcome-row">
+        <div>
+          <h1>Saved <span>places.</span></h1>
+          <p class="trip-summary" id="saved-summary"></p>
+        </div>
+        <div class="trip-filters" role="tablist">
+          <button class="filter-tab active" type="button" data-filter="all">All <b id="count-all">0</b></button>
+          <button class="filter-tab" type="button" data-filter="dest">Destinations <b id="count-dest">0</b></button>
+          <button class="filter-tab" type="button" data-filter="spot">Spots <b id="count-spot">0</b></button>
+        </div>
+      </section>
+
+      <section class="saved-grid" id="saved-grid"></section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase/supabase-config.js"></script>
+  <script src="../travel-api.js"></script>
+  <script src="saved.js"></script>
+</body>
+</html>

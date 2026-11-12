@@ -10,6 +10,7 @@
   let origin = null;
   let radius = 5000;
   let places = [];
+  let saved = [];
   let map = null;
   let layer = null;
   let toastTimer;
@@ -62,6 +63,8 @@
     if (error) return showToast(error.message);
     trips = rows;
     if (!trips.length) return renderEmpty();
+    const { data: spots } = await client.from('saved_places').select('id, name, destination').not('latitude', 'is', null);
+    saved = spots || [];
 
     const today = todayStr();
     const wanted = new URLSearchParams(location.search).get('trip');
@@ -135,6 +138,7 @@
           <div class="near-actions">
             <a class="ghost-button" href="https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Directions ↗</a>
             <button class="ghost-button" type="button" data-add="${p.id}">＋ Itinerary</button>
+            <button class="near-save${savedSpot(p) ? ' is-saved' : ''}" type="button" data-save="${p.id}" aria-label="Save ${esc(p.name)}">${savedSpot(p) ? '♥' : '♡'}</button>
             <a class="near-wiki" href="${esc(p.url)}" target="_blank" rel="noopener" aria-label="Read about ${esc(p.name)} on Wikipedia">W</a>
           </div>
         </article>`).join('')
@@ -174,6 +178,31 @@
     if (button) {
       button.textContent = '✓ Added';
       button.disabled = true;
+    }
+  }
+
+  const savedSpot = (p) => saved.find((s) => s.name === p.name && s.destination === trip.destination);
+
+  async function toggleSave(place) {
+    const existing = savedSpot(place);
+    if (existing) {
+      const { error } = await client.from('saved_places').delete().eq('id', existing.id);
+      if (error) return showToast(error.message);
+      saved = saved.filter((s) => s !== existing);
+      showToast(`Removed "${place.name}" from saved places.`);
+    } else {
+      const { data, error } = await client.from('saved_places').insert({
+        user_id: user.id, name: place.name, destination: trip.destination, country: trip.country || null,
+        image_url: place.photo, latitude: place.lat, longitude: place.lng
+      }).select('id, name, destination').single();
+      if (error) return showToast(/latitude|longitude/.test(error.message) ? 'Run the new saved places SQL in Supabase first.' : error.message);
+      saved.push(data);
+      showToast(`Saved "${place.name}".`);
+    }
+    const button = document.querySelector(`[data-save="${place.id}"]`);
+    if (button) {
+      button.classList.toggle('is-saved', !existing);
+      button.textContent = existing ? '♡' : '♥';
     }
   }
 
@@ -263,7 +292,9 @@
     });
     $('#near-grid').addEventListener('click', (event) => {
       const add = event.target.closest('[data-add]');
+      const save = event.target.closest('[data-save]');
       if (add) addToItinerary(places.find((p) => String(p.id) === add.dataset.add));
+      if (save) toggleSave(places.find((p) => String(p.id) === save.dataset.save));
     });
 
     init();

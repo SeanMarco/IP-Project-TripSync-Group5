@@ -51,3 +51,8 @@
 
 @media(max-width:900px){.near-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.stay-panel{grid-template-columns:1fr}.near-grid{grid-template-columns:1fr}.near-map{height:260px}}
+
+.near-save{width:34px;height:34px;flex:none;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:none;color:var(--muted);font-size:16px;transition:.2s}
+.near-save:hover{border-color:var(--red);color:var(--red)}
+.near-save.is-saved{background:#fdeaea;border-color:var(--red);color:var(--red)}
+[data-theme="dark"] .near-save.is-saved{background:#3a1a1d}

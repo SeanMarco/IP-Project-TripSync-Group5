@@ -428,15 +428,10 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Login failed. Please try again.");
       }
 
-      
-showMessage("Login successful! Welcome back.", "success");
-
-console.log("Login successful:", data.user.id);
-
-// Redirect to the dashboard after a short delay.
-setTimeout(() => {
-  window.location.href = "../dashboard/dashboard.html";
-}, 500);
+      showMessage("Login successful! Welcome back.", "success");
+      setTimeout(() => {
+        window.location.href = "../dashboard/dashboard.html";
+      }, 500);
 
     } catch (error) {
       console.error("Login failed:", error);
@@ -479,7 +474,7 @@ setTimeout(() => {
         const client = getSupabaseClient();
 
         const { error } = await client.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password.html`
+          redirectTo: new URL("reset-password.html", window.location.href).href
         });
 
         if (error) throw error;
@@ -579,9 +574,6 @@ setTimeout(() => {
       if (error) throw error;
 
       if (data.session) {
-        console.log("An active Supabase session exists.");
-
-        // Enable if you want automatic dashboard redirection:
         window.location.href = "../dashboard/dashboard.html";
       }
     } catch (error) {

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2c93d6" />
+  <title>TripSync — Budget</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../dashboard.css" />
+  <link rel="stylesheet" href="../trips/trips.css" />
+  <link rel="stylesheet" href="../itinerary/itinerary.css" />
+  <link rel="stylesheet" href="budget.css" />
+</head>
+<body>
+  <div class="app-shell top-layout">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <a class="brand" href="../dashboard.html" aria-label="TripSync home"><span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span></a>
+        <nav class="top-links" aria-label="Main navigation">
+          <a class="top-link" href="../dashboard.html">Overview</a>
+          <a class="top-link" href="../trips/trips.html">My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
+          <a class="top-link" href="../itinerary/itinerary.html">Itinerary</a>
+          <a class="top-link active" href="../budget/budget.html" aria-current="page">Budget</a>
+          <a class="top-link" href="../nearby/nearby.html">Where to go</a>
+          <a class="top-link" href="../saved/saved.html">Saved</a>
+          <a class="top-link" href="../dashboard.html#destinations">Explore</a>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-button theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" type="button"><span class="moon">☾</span><span class="sun">☀</span></button>
+          <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
+          <span class="avatar avatar-small" id="top-avatar">TS</span>
+          <button class="icon-button logout-icon" id="logout-button" type="button" aria-label="Log out" title="Log out">↪</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="welcome-row">
+        <div>
+          <h1>Track the <span>spend.</span></h1>
+          <p class="trip-summary" id="trip-summary"></p>
+        </div>
+        <div class="itinerary-actions">
+          <select class="trip-select" id="trip-select" aria-label="Choose a trip"></select>
+          <button class="primary-button" id="add-expense-btn" type="button"><span>＋</span> Add expense</button>
+        </div>
+      </section>
+
+      <div id="budget-empty"></div>
+      <section class="budget-top" id="budget-top" hidden>
+        <article class="budget-card">
+          <div class="budget-card-head">
+            <span class="budget-label">Spent so far</span>
+            <button class="text-link budget-edit" id="budget-edit" type="button">✎ Edit budget</button>
+          </div>
+          <div class="budget-big"><strong id="spent">₱0</strong> <small id="of-budget">of ₱0 budget</small></div>
+          <form class="budget-form" id="budget-form" hidden>
+            <input type="number" id="budget-input" min="0" step="0.01" placeholder="Trip budget in ₱" aria-label="Trip budget" />
+            <button class="primary-button" type="submit">Save</button>
+            <button class="ghost-button" id="budget-cancel" type="button">Cancel</button>
+          </form>
+          <div class="budget-bar"><span id="budget-fill"></span></div>
+          <div class="budget-meta">
+            <span id="budget-pct">0% used</span>
+            <strong id="budget-left">₱0 left</strong>
+          </div>
+          <div class="budget-notes" id="budget-notes"></div>
+        </article>
+        <article class="budget-card">
+          <div class="budget-card-head"><span class="budget-label">By category</span></div>
+          <div class="cat-list" id="cat-list"></div>
+        </article>
+      </section>
+
+      <section class="expense-panel" id="expense-panel" hidden>
+        <div class="expense-head">
+          <h2>Expenses <span class="heading-count" id="expense-count">0</span></h2>
+        </div>
+        <div id="expense-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="expense-modal" hidden role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div><h2 id="expense-modal-title">Add expense</h2></div>
+        <button class="modal-close" id="expense-modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <p class="form-error" id="expense-form-error" role="alert" hidden></p>
+      <form id="expense-form" novalidate>
+        <div class="form-grid">
+          <div class="field full"><label for="expense-label">What did you pay for?</label><input type="text" id="expense-label" placeholder="e.g. Ramen at Ichiran" maxlength="100" required /></div>
+          <div class="field"><label for="expense-amount">Amount</label>
+            <div class="amount-row">
+              <select id="expense-currency" aria-label="Currency"><option value="PHP">₱ PHP</option></select>
+              <input type="number" id="expense-amount" min="0" step="0.01" placeholder="0" required />
+            </div>
+            <small class="convert-hint" id="convert-hint"></small>
+          </div>
+          <div class="field"><label for="expense-date">Date</label><input type="date" id="expense-date" required /></div>
+          <div class="field full"><label>Category</label>
+            <div class="tag-picker" id="cat-picker">
+              <button type="button" data-cat="Food">🍜 Food</button>
+              <button type="button" data-cat="Transport">🚌 Transport</button>
+              <button type="button" data-cat="Stay">🛏 Stay</button>
+              <button type="button" data-cat="Activities">⛰ Activities</button>
+              <button type="button" data-cat="Shopping">🛍 Shopping</button>
+              <button type="button" data-cat="Other">✦ Other</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-button" id="expense-cancel" type="button">Cancel</button>
+          <button class="primary-button" id="expense-submit" type="submit"><span>＋</span> <b id="expense-submit-label">Add expense</b></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../supabase/supabase-config.js"></script>
+  <script src="../travel-api.js"></script>
+  <script src="budget.js"></script>
+</body>
+</html>

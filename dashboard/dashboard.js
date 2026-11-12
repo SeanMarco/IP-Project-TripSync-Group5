@@ -217,7 +217,7 @@
     $('#budget-planned').textContent = peso(planned);
     $('#budget-total').textContent = peso(total);
     $('#budget-fill').style.width = pct + '%';
-    $('#budget-pct').textContent = `${pct}% planned`;
+    $('#budget-pct').textContent = `${pct}% spent`;
     $('#budget-left').textContent = left < 0 ? `${peso(-left)} over` : `${peso(left)} left`;
   }
 
@@ -1155,5 +1155,10 @@
 
     state.user = await initializeAuth();
     if (state.user && state.client) await loadData();
+    const params = new URLSearchParams(location.search);
+    if (params.get('plan')) {
+      history.replaceState(null, '', location.pathname);
+      planFromDestination({ name: params.get('plan'), country: params.get('country') || '' });
+    }
   });
 })();

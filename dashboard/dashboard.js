@@ -80,9 +80,8 @@
     const displayName = cleanName || 'Traveler';
     const initials = initialsFrom(displayName);
     $('#top-name').textContent = displayName.split(' ')[0];
-    $('#sidebar-name').textContent = displayName;
-    $('#avatar-initials').textContent = initials;
     $('#top-avatar').textContent = initials;
+    if ($('#hero-name')) $('#hero-name').textContent = displayName.split(' ')[0];
   }
 
   // ---------- auth ----------
@@ -197,7 +196,6 @@
     const past = state.trips.filter(isPast);
 
     $('#stat-upcoming').textContent = pad2(upcoming.length);
-    $('#stat-upcoming-foot').textContent = upcoming.length ? 'Your next adventure is close' : 'Plan your first trip';
     $('#trip-count').textContent = upcoming.length;
 
     const navCount = $('#nav-trip-count');
@@ -209,7 +207,6 @@
 
     const days = past.reduce((sum, t) => sum + tripDays(t), 0);
     $('#stat-days').textContent = days;
-    $('#stat-days-foot').textContent = past.length ? 'Memories made so far' : 'Your first adventure awaits';
 
     const ids = new Set(upcoming.map((t) => t.id));
     const total = upcoming.reduce((sum, t) => sum + Number(t.budget || 0), 0);
@@ -239,8 +236,8 @@
 
     if (!state.featured) {
       featuredBox.innerHTML =
-        '<div class="empty-note"><strong>No upcoming trips yet</strong>Plan your first trip and it will show up here.</div>';
-      listBox.innerHTML = '';
+        '<div class="empty-note"><strong>No upcoming trips yet</strong>Search a place above or pick a destination below to start planning.</div>';
+      listBox.innerHTML = '<p class="list-empty">Your other trips will show up here.</p>';
       return;
     }
 
@@ -278,6 +275,7 @@
             <strong>${esc(t.title)}</strong>
             <span>${esc(shortDate(t.start_date))} – ${esc(shortDate(t.end_date))}, ${parseDate(t.end_date).getFullYear()} <b>·</b> ${plural(tripDays(t), 'day')}</span>
             <div class="trip-meta"><span>♧ ${plural(t.travelers || 1, 'traveler')}</span><span>◷ ${esc(countdown)}</span></div>
+            <a class="near-link${t.start_date <= today ? ' now' : ''}" href="nearby/nearby.html?trip=${esc(t.id)}">📍 Where to go in ${esc(t.destination)} →</a>
           </div>
           <a class="round-arrow" href="itinerary/itinerary.html?trip=${esc(t.id)}" aria-label="Open ${esc(t.title)} itinerary">↗</a>
         </div>
@@ -299,7 +297,7 @@
           <button class="mini-arrow" type="button" aria-label="Open ${esc(name)} trip" data-trip-id="${esc(m.id)}">↗</button>
         </article>`;
       })
-      .join('');
+      .join('') || '<p class="list-empty">No other upcoming trips yet.</p>';
   }
 
   function renderDestinations() {
@@ -313,10 +311,15 @@
       .map((d) => {
         const saved = savedIds.has(d.id);
         return `
-        <div class="destination-card${safeUrl(d.image_url) ? '' : ' photo-fallback'}"${bgStyle(d.image_url)} data-plan="${esc(d.id)}" role="button" tabindex="0" aria-label="Plan a trip to ${esc(d.name)}">
-          <span class="destination-save" role="button" tabindex="0" data-id="${esc(d.id)}" aria-label="${saved ? 'Remove' : 'Save'} ${esc(d.name)}">${saved ? '♥' : '♡'}</span>
-          <em class="plan-cta">✈ Plan a trip</em>
-          <div>${d.country ? `<span>${esc(d.country.toUpperCase())}</span>` : ''}<strong>${esc(d.name)}</strong>${d.tagline ? `<small>${esc(d.tagline)}</small>` : ''}</div>
+        <div class="dest-card" data-plan="${esc(d.id)}" role="button" tabindex="0" aria-label="Plan a trip to ${esc(d.name)}">
+          <div class="dest-photo${safeUrl(d.image_url) ? '' : ' photo-fallback'}"${bgStyle(d.image_url)}>
+            <span class="destination-save" role="button" tabindex="0" data-id="${esc(d.id)}" aria-label="${saved ? 'Remove' : 'Save'} ${esc(d.name)}">${saved ? '♥' : '♡'}</span>
+          </div>
+          <div class="dest-body">
+            <strong>${esc(d.name)}</strong>
+            <span>${esc([d.country, d.tagline].filter(Boolean).join(' · '))}</span>
+            <em>Plan a trip →</em>
+          </div>
         </div>`;
       })
       .join('');
@@ -325,11 +328,18 @@
       const page = await TravelAPI.wiki(d.name, d.country || '');
       if (!page?.photo) return;
       d.image_url = page.photo;
-      const card = grid.querySelector(`[data-plan="${d.id}"]`);
-      if (!card) return;
-      card.classList.remove('photo-fallback');
-      card.style.backgroundImage = `url('${safeUrl(page.photo)}')`;
+      const photo = grid.querySelector(`[data-plan="${d.id}"] .dest-photo`);
+      if (!photo) return;
+      photo.classList.remove('photo-fallback');
+      photo.style.backgroundImage = `url('${safeUrl(page.photo)}')`;
     });
+
+    const chips = $('#hero-chips');
+    if (chips) {
+      chips.innerHTML = state.destinations.length
+        ? '<span>Popular:</span>' + state.destinations.slice(0, 5).map((d) => `<button class="hero-chip" type="button" data-plan="${esc(d.id)}">${esc(d.name)}</button>`).join('')
+        : '';
+    }
   }
 
   function planFromDestination(id) {
@@ -1082,9 +1092,25 @@
     document.querySelectorAll('.more-button, .notification-button, #sidebar-profile').forEach((button) => {
       button.addEventListener('click', () => showToast('More TripSync features are coming soon.'));
     });
-    $('#plan-trip-btn')?.addEventListener('click', (event) => {
+    $('#hero-form')?.addEventListener('submit', (event) => {
       event.preventDefault();
+      const place = $('#hero-search').value.trim();
+      if (!place) return openTripModal();
+      hasDraft = false;
       openTripModal();
+      if ($('#trip-modal').hidden) return;
+      $('#trip-destination').value = place;
+      $('#trip-destination').dispatchEvent(new Event('change'));
+      $('#trip-start').focus();
+      $('#hero-search').value = '';
+    });
+    $('#hero-surprise')?.addEventListener('click', () => {
+      if (!state.destinations.length) return showToast('No destinations to pick from yet.');
+      planFromDestination(state.destinations[Math.floor(Math.random() * state.destinations.length)].id);
+    });
+    $('#hero-chips')?.addEventListener('click', (event) => {
+      const chip = event.target.closest('[data-plan]');
+      if (chip) planFromDestination(chip.dataset.plan);
     });
     $('#trip-modal-close')?.addEventListener('click', closeTripModal);
     $('#trip-cancel')?.addEventListener('click', closeTripModal);

@@ -13,65 +13,64 @@
   <link rel="stylesheet" href="dashboard.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <a class="brand" href="dashboard.html" aria-label="TripSync home">
-        <span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span>
-      </a>
-      <div class="workspace-label">WORKSPACE</div>
-      <nav class="side-nav" aria-label="Main navigation">
-        <a class="nav-link active" href="#overview"><span class="nav-icon">▦</span>Overview</a>
-        <a class="nav-link" href="trips/trips.html"><span class="nav-icon">⌁</span>My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
-        <a class="nav-link" href="itinerary/itinerary.html"><span class="nav-icon">▤</span>Itinerary</a>
-        <a class="nav-link" href="#destinations"><span class="nav-icon">◎</span>Explore places</a>
-        <a class="nav-link" href="#saved"><span class="nav-icon">♡</span>Saved places</a>
-      </nav>
-      <div class="sidebar-bottom">
-        <button class="profile-mini" id="sidebar-profile" type="button"><span class="avatar" id="avatar-initials">TS</span><span class="profile-copy"><strong id="sidebar-name">TripSync Traveler</strong><small>Personal account</small></span><span class="more">···</span></button>
-        <button class="logout-link" id="logout-button" type="button"><span>↪</span> Log out</button>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobile-menu" aria-label="Open menu" type="button">☰</button>
-        <div class="breadcrumb"><span>Workspace</span><span class="crumb-slash">/</span><strong>Overview</strong></div>
+  <div class="app-shell top-layout">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <a class="brand" href="dashboard.html" aria-label="TripSync home"><span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span></a>
+        <nav class="top-links" aria-label="Main navigation">
+          <a class="top-link active" href="dashboard.html" aria-current="page">Overview</a>
+          <a class="top-link" href="trips/trips.html">My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
+          <a class="top-link" href="itinerary/itinerary.html">Itinerary</a>
+          <a class="top-link" href="nearby/nearby.html">Where to go</a>
+          <a class="top-link" href="#destinations">Explore</a>
+        </nav>
         <div class="top-actions">
           <button class="icon-button theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" type="button"><span class="moon">☾</span><span class="sun">☀</span></button>
-          <div class="top-divider"></div>
           <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
           <span class="avatar avatar-small" id="top-avatar">TS</span>
+          <button class="icon-button logout-icon" id="logout-button" type="button" aria-label="Log out" title="Log out">↪</button>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <section class="welcome-row" id="overview">
-        <div><h1>Where to <span>next?</span></h1></div>
-        <a class="primary-button" id="plan-trip-btn" href="#my-trips"><span>＋</span> Plan a new trip</a>
-      </section>
+    <section class="search-hero" id="overview">
+      <div class="search-inner">
+        <h1>Where to next, <span id="hero-name">traveler</span>?</h1>
+        <p>Type a place and we'll fill in the country, weather and more.</p>
+        <form class="search-bar" id="hero-form">
+          <label class="sr-only" for="hero-search">Destination</label>
+          <input id="hero-search" type="search" placeholder="Search a city, island or country…" autocomplete="off" />
+          <button class="surprise-button" id="hero-surprise" type="button">🎲 Surprise me</button>
+          <button class="primary-button" id="plan-trip-btn" type="submit"><span>＋</span> Plan trip</button>
+        </form>
+        <div class="hero-chips" id="hero-chips"></div>
+      </div>
+    </section>
 
-      <section class="stats-grid" aria-label="Travel summary">
-        <article class="stat-card"><div class="stat-top"><span class="stat-label">Upcoming trips</span><span class="stat-icon blue-icon">⌁</span></div><div class="stat-number" id="stat-upcoming">00</div><div class="stat-foot"><span class="status-dot blue-dot"></span> <span id="stat-upcoming-foot">Plan your first trip</span></div></article>
-        <article class="stat-card"><div class="stat-top"><span class="stat-label">Days traveled</span><span class="stat-icon orange-icon">✈</span></div><div class="stat-number"><span id="stat-days">0</span> <small>days</small></div><div class="stat-foot"><span class="status-dot green-dot"></span> <span id="stat-days-foot">Your first adventure awaits</span></div></article>
-        <article class="stat-card budget-stat"><div class="stat-top"><span class="stat-label">Trip budget overview</span><span class="stat-icon green-icon">₱</span></div><div class="budget-amount"><span id="budget-planned">₱0</span> <small>of <span id="budget-total">₱0</span></small></div><div class="progress-track"><span id="budget-fill" style="width:0%"></span></div><div class="budget-foot"><span id="budget-pct">0% planned</span><strong id="budget-left">₱0 left</strong></div></article>
-      </section>
-
-      <section class="content-grid">
-        <div class="primary-column">
-          <div class="section-heading" id="my-trips"><div><h2>Upcoming trips <span class="heading-count" id="trip-count">0</span></h2></div><a class="text-link" href="trips/trips.html">All trips <span>→</span></a></div>
+    <main class="main-content dash-main">
+      <div class="up-next-row">
+        <section class="up-next" aria-label="Up next">
+          <div class="section-heading"><div><h2>Up next</h2></div></div>
           <div id="featured-trip"></div>
-          <div class="trip-list" id="trip-list"></div>
-          <div class="section-heading destination-heading" id="destinations"><div><h2>Explore destinations</h2></div><a class="text-link" href="#saved">Explore all <span>→</span></a></div>
-          <div class="destination-grid" id="destination-grid"></div>
-          <div class="plan-panels">
-            <section class="panel itinerary-panel" id="itinerary"><div class="panel-heading"><div><h2>Trip timeline</h2></div><a class="text-link" id="timeline-link" href="itinerary/itinerary.html">Plan days <span>→</span></a></div><div class="timeline-date"><div><strong id="timeline-month">No upcoming trip</strong><span id="timeline-trip">Add a trip to see your timeline</span></div><div class="calendar-icon">▦</div></div><div class="timeline" id="timeline"></div></section>
-            <section class="panel checklist-panel"><div class="panel-heading"><div><h2>Trip checklist</h2></div><span class="check-count" id="check-count">0 of 0</span></div><div class="check-progress"><span id="check-progress-fill" style="width:0%"></span></div><div class="checklist" id="checklist"></div><button class="outline-button" id="add-checklist-item" type="button">＋ Add checklist item</button></section>
-          </div>
-        </div>
+        </section>
 
-        <aside class="right-column">
-          <section class="panel place-panel" id="map-panel"><div class="panel-heading"><div><h2 id="map-title">Map &amp; weather</h2></div><a class="text-link" id="map-open" href="#" target="_blank" rel="noopener" hidden>Open in Maps <span>↗</span></a></div><div class="map-box" id="map" hidden></div><div class="empty-note" id="map-empty"><strong>No destination yet</strong>Plan a trip to see its map and weather.</div><div class="weather" id="weather" hidden><div class="weather-now"><span class="weather-icon" id="weather-icon">☀️</span><div><strong id="weather-temp">--°C</strong><small id="weather-desc"></small></div><div class="weather-stats"><span id="weather-wind"></span><span id="weather-humidity"></span></div></div><div class="forecast" id="forecast"></div></div><div class="dest-info" id="dest-info" hidden></div></section>
-        </aside>
-      </section>
+        <section class="panel trips-panel" id="my-trips" aria-label="Your trips">
+          <div class="panel-heading"><div><h2>Your trips <span class="heading-count" id="trip-count">0</span></h2></div><a class="text-link" href="trips/trips.html">All trips <span>→</span></a></div>
+          <div class="trip-stats"><div><strong id="stat-upcoming">00</strong><span>upcoming</span></div><div><strong id="stat-days">0</strong><span>days traveled</span></div></div>
+          <div class="trip-list" id="trip-list"></div>
+          <div class="budget-mini"><div class="budget-amount"><span id="budget-planned">₱0</span> <small>of <span id="budget-total">₱0</span> budget</small></div><div class="progress-track"><span id="budget-fill" style="width:0%"></span></div><div class="budget-foot"><span id="budget-pct">0% planned</span><strong id="budget-left">₱0 left</strong></div></div>
+        </section>
+      </div>
+
+      <div class="section-heading details-heading"><div><h2>Trip details</h2></div></div>
+      <div class="detail-grid">
+        <section class="panel place-panel" id="map-panel"><div class="panel-heading"><div><h2 id="map-title">Map &amp; weather</h2></div><a class="text-link" id="map-open" href="#" target="_blank" rel="noopener" hidden>Open in Maps <span>↗</span></a></div><div class="map-box" id="map" hidden></div><div class="empty-note" id="map-empty"><strong>No destination yet</strong>Plan a trip to see its map and weather.</div><div class="weather" id="weather" hidden><div class="weather-now"><span class="weather-icon" id="weather-icon">☀️</span><div><strong id="weather-temp">--°C</strong><small id="weather-desc"></small></div><div class="weather-stats"><span id="weather-wind"></span><span id="weather-humidity"></span></div></div><div class="forecast" id="forecast"></div></div><div class="dest-info" id="dest-info" hidden></div></section>
+        <section class="panel itinerary-panel" id="itinerary"><div class="panel-heading"><div><h2>Trip timeline</h2></div><a class="text-link" id="timeline-link" href="itinerary/itinerary.html">Plan days <span>→</span></a></div><div class="timeline-date"><div><strong id="timeline-month">No upcoming trip</strong><span id="timeline-trip">Add a trip to see your timeline</span></div><div class="calendar-icon">▦</div></div><div class="timeline" id="timeline"></div></section>
+        <section class="panel checklist-panel"><div class="panel-heading"><div><h2>Trip checklist</h2></div><span class="check-count" id="check-count">0 of 0</span></div><div class="check-progress"><span id="check-progress-fill" style="width:0%"></span></div><div class="checklist" id="checklist"></div><button class="outline-button" id="add-checklist-item" type="button">＋ Add checklist item</button></section>
+      </div>
+
+      <div class="section-heading destination-heading" id="destinations"><div><h2>Explore destinations</h2></div></div>
+      <div class="destination-grid" id="destination-grid"></div>
     </main>
   </div>
   <div class="modal" id="trip-modal" hidden role="dialog" aria-modal="true" aria-labelledby="trip-modal-title">

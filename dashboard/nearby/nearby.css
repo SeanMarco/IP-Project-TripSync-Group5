@@ -1,0 +1,53 @@
+.stay-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:center;margin-bottom:18px}
+.stay-panel[hidden]{display:none}
+.stay-now{display:flex;align-items:center;gap:12px;min-width:0}
+.stay-pin{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:12px;background:#fdeaea;font-size:20px}
+.stay-now div{display:grid;gap:2px;min-width:0}
+.stay-now small{font-size:11px;color:var(--muted)}
+.stay-now strong{font:800 17px Manrope,sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.origin-chips,.radius-chips{display:flex;flex-wrap:wrap;gap:6px}
+.origin-chips button,.radius-chips button{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);font-size:12px;font-weight:600;transition:.2s}
+.origin-chips button:hover:not(:disabled),.radius-chips button:hover{border-color:var(--blue)}
+.origin-chips button.active,.radius-chips button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.origin-chips button:disabled{opacity:.45;cursor:not-allowed}
+.stay-form{grid-column:1/-1;display:grid;gap:8px;padding-top:14px;border-top:1px solid var(--line)}
+.stay-form label{font-size:12px;font-weight:700;color:var(--ink)}
+.stay-row{display:flex;gap:8px}
+.stay-row input{flex:1;min-width:0;height:42px;padding:0 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.stay-row input:focus{border-color:var(--blue)}
+.stay-results{display:grid;gap:4px}
+.stay-results[hidden]{display:none}
+.stay-results button{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--blue-soft);color:var(--ink);font-size:12px;text-align:left;transition:.2s}
+.stay-results button:hover{border-color:var(--blue)}
+.stay-results p{margin:0;font-size:12px;color:var(--muted)}
+.stay-clear{justify-self:start;border:0;background:none;padding:0;cursor:pointer;color:var(--red)}
+.stay-clear[hidden]{display:none}
+
+.near-map{height:340px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.near-map[hidden]{display:none}
+.near-pin span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue);border:2px solid #fff;color:#fff;font:800 11px 'DM Sans',sans-serif;box-shadow:0 3px 8px rgba(8,40,66,.35)}
+
+.near-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:26px 0 14px}
+.near-toolbar h2{margin:0;font:800 20px Manrope,sans-serif;letter-spacing:-.4px}
+.near-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.near-grid .empty-note{grid-column:1/-1}
+.near-card{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.near-photo{position:relative;height:140px;background-size:cover;background-position:center}
+.near-no{position:absolute;top:10px;left:10px;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:800;border:2px solid #fff}
+.near-body{flex:1;display:grid;align-content:start;gap:4px;padding:13px 15px}
+.near-body strong{font:800 15px Manrope,sans-serif;color:var(--ink)}
+.near-desc{font-size:12px;color:var(--muted)}
+.near-dist{font-size:11px;font-weight:700;color:var(--blue)}
+.near-actions{display:flex;gap:6px;padding:0 15px 15px}
+.near-actions .ghost-button{flex:1;height:34px;display:grid;place-items:center;padding:0;font-size:11px}
+.near-actions .ghost-button:disabled{color:#1f9d55;border-color:#bfe8cf;cursor:default}
+.near-wiki{width:34px;height:34px;flex:none;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;font:700 13px Georgia,serif;color:var(--ink)}
+.near-wiki:hover{border-color:var(--blue);color:var(--blue)}
+.near-credit{margin:18px 0 0;font-size:10px;color:var(--muted);text-align:center}
+
+[data-theme="dark"] .stay-pin{background:#3a1a1d}
+[data-theme="dark"] .stay-results button{background:#12324a}
+[data-theme="dark"] .near-actions .ghost-button:disabled{color:#7fd8a5;border-color:#1f5a45}
+
+@media(max-width:900px){.near-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.stay-panel{grid-template-columns:1fr}.near-grid{grid-template-columns:1fr}.near-map{height:260px}}

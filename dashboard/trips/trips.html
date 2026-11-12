@@ -13,37 +13,27 @@
   <link rel="stylesheet" href="trips.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <a class="brand" href="../dashboard.html" aria-label="TripSync home">
-        <span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span>
-      </a>
-      <div class="workspace-label">WORKSPACE</div>
-      <nav class="side-nav" aria-label="Main navigation">
-        <a class="nav-link" href="../dashboard.html"><span class="nav-icon">▦</span>Overview</a>
-        <a class="nav-link active" href="trips.html"><span class="nav-icon">⌁</span>My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
-        <a class="nav-link" href="../itinerary/itinerary.html"><span class="nav-icon">▤</span>Itinerary</a>
-        <a class="nav-link" href="../dashboard.html#destinations"><span class="nav-icon">◎</span>Explore places</a>
-        <a class="nav-link" href="../dashboard.html#saved"><span class="nav-icon">♡</span>Saved places</a>
-      </nav>
-      <div class="sidebar-bottom">
-        <button class="profile-mini" type="button"><span class="avatar" id="avatar-initials">TS</span><span class="profile-copy"><strong id="sidebar-name">TripSync Traveler</strong><small>Personal account</small></span><span class="more">···</span></button>
-        <button class="logout-link" id="logout-button" type="button"><span>↪</span> Log out</button>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobile-menu" aria-label="Open menu" type="button">☰</button>
-        <div class="breadcrumb"><a href="../dashboard.html">Workspace</a><span class="crumb-slash">/</span><strong>My trips</strong></div>
+  <div class="app-shell top-layout">
+    <header class="top-nav">
+      <div class="top-nav-inner">
+        <a class="brand" href="../dashboard.html" aria-label="TripSync home"><span class="brand-mark">✦</span><span>Trip<span class="brand-light">Sync</span></span></a>
+        <nav class="top-links" aria-label="Main navigation">
+          <a class="top-link" href="../dashboard.html">Overview</a>
+          <a class="top-link active" href="../trips/trips.html" aria-current="page">My trips <span class="nav-count" id="nav-trip-count" hidden>0</span></a>
+          <a class="top-link" href="../itinerary/itinerary.html">Itinerary</a>
+          <a class="top-link" href="../nearby/nearby.html">Where to go</a>
+          <a class="top-link" href="../dashboard.html#destinations">Explore</a>
+        </nav>
         <div class="top-actions">
           <button class="icon-button theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" type="button"><span class="moon">☾</span><span class="sun">☀</span></button>
-          <div class="top-divider"></div>
           <span class="top-greeting">Good day, <strong id="top-name">Traveler</strong></span>
           <span class="avatar avatar-small" id="top-avatar">TS</span>
+          <button class="icon-button logout-icon" id="logout-button" type="button" aria-label="Log out" title="Log out">↪</button>
         </div>
-      </header>
+      </div>
+    </header>
 
+    <main class="main-content">
       <section class="welcome-row">
         <div><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR PLANS</div><h1>My <span>trips.</span></h1><p class="welcome-subtitle">Every trip you've planned, booked or finished — in one place.</p></div>
         <button class="primary-button" id="new-trip-btn" type="button"><span>＋</span> Plan a new trip</button>

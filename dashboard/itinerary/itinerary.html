@@ -60,8 +60,10 @@
       <form id="item-form" novalidate>
         <div class="form-grid">
           <div class="field full"><label for="item-title">What's the plan?</label><input type="text" id="item-title" placeholder="e.g. Island hopping tour" maxlength="100" required /></div>
-          <div class="field"><label for="item-date">Day</label><select id="item-date" required></select></div>
-          <div class="field"><label for="item-time">Time <small>(optional)</small></label><input type="time" id="item-time" /></div>
+          <div class="field full"><label for="item-place">Place <small>(optional)</small></label><input type="text" id="item-place" placeholder="e.g. Nalusuan Island, Kawasan Falls" maxlength="120" /></div>
+          <div class="field full"><label for="item-date">Day</label><select id="item-date" required></select></div>
+          <div class="field"><label for="item-time">Starts <small>(optional)</small></label><input type="time" id="item-time" /></div>
+          <div class="field"><label for="item-end">Ends <small>(optional)</small></label><input type="time" id="item-end" /></div>
           <div class="field full"><label>Type <small>(optional)</small></label>
             <div class="tag-picker" id="tag-picker">
               <button type="button" data-tag="Flight">✈ Flight</button>

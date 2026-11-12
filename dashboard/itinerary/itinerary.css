@@ -33,3 +33,20 @@
 
 @media(hover:none){.plan-btn{opacity:1}}
 @media(max-width:700px){.itinerary-actions{width:100%}.trip-select{flex:1;min-width:0}.plan-time{width:52px}}
+
+/* Schedule: start/end times, place, now, overlaps */
+.plan-row{align-items:flex-start}
+.plan-time{width:72px;display:grid;gap:1px;padding-top:2px}
+.plan-time b{font-size:12px;font-weight:800;color:var(--blue)}
+.plan-time small{font-size:10px;font-weight:600;color:var(--muted)}
+.plan-text strong{white-space:normal}
+.plan-place{justify-self:start;font-size:11px;font-weight:700;color:var(--blue-dark)}
+.plan-place:hover{text-decoration:underline}
+.day-span{display:block;margin-top:3px;font-size:11px;font-weight:600;color:var(--muted)}
+.day-card.is-today{border-color:var(--red);box-shadow:0 0 0 3px #eb2f3314}
+.plan-row.is-now{margin:0 -10px;padding:10px;border-radius:10px;background:#fdeaea}
+.now-chip{margin-left:6px;padding:2px 7px;border-radius:10px;background:var(--red);color:#fff;font-size:9px;font-style:normal;font-weight:800;vertical-align:middle}
+.overlap{color:#b45309;font-weight:700}
+[data-theme="dark"] .plan-row.is-now{background:#3a1a1d}
+[data-theme="dark"] .overlap{color:#f0c674}
+[data-theme="dark"] .plan-place{color:#9fd3f2}

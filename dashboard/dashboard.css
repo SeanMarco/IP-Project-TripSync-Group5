@@ -288,3 +288,5 @@ body,.sidebar,.panel,.stat-card,.featured-trip,.mini-trip{transition:background 
   .detail-grid .place-panel>#map{min-height:220px}
 }
 .detail-grid{align-items:stretch}
+[data-theme="dark"] .leaflet-gl-layer{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
+.now-status{color:#fff;background:var(--red)}

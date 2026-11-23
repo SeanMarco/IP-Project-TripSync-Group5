@@ -290,3 +290,27 @@ body,.sidebar,.panel,.stat-card,.featured-trip,.mini-trip{transition:background 
 .detail-grid{align-items:stretch}
 [data-theme="dark"] .leaflet-gl-layer{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
 .now-status{color:#fff;background:var(--red)}
+/* ===== Mobile drawer menu ===== */
+.menu-toggle,.drawer-head,.drawer-foot,.nav-shade{display:none}
+@media(max-width:700px){
+  .top-nav-inner{flex-wrap:nowrap}
+  .menu-toggle{display:grid;place-content:center;gap:4px;flex:none;color:var(--ink)}
+  .menu-toggle span{display:block;width:16px;height:2px;border-radius:2px;background:currentColor}
+  .top-nav .brand{font-size:19px}
+  .top-nav .avatar-small{display:none}
+  .top-links{position:fixed;inset:0 auto 0 0;z-index:50;width:min(290px,82vw);flex-direction:column;flex-wrap:nowrap;gap:4px;padding:16px 14px;overflow:auto;background:var(--surface);border-right:1px solid var(--line);transform:translateX(-100%);transition:transform .25s ease,box-shadow .25s;order:0;flex-basis:auto}
+  .nav-open .top-links{transform:none;box-shadow:15px 0 40px #0f41661c}
+  .top-links .top-link{flex:none;height:46px;padding:0 14px;font-size:15px}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 14px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .drawer-close{display:grid;place-items:center;font-size:14px}
+  .drawer-foot{display:flex;align-items:center;gap:10px;margin-top:auto;padding:14px 4px 4px;border-top:1px solid var(--line)}
+  .drawer-foot div{display:grid;gap:2px;min-width:0}
+  .drawer-foot small{font-size:11px;color:var(--muted)}
+  .drawer-foot strong{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drawer-logout{margin-left:auto;border:0;background:#fdeaea;color:var(--red);font-weight:700;font-size:12px;padding:8px 12px;border-radius:9px}
+  .nav-shade{display:block;position:fixed;inset:0;z-index:40;background:rgba(15,65,102,.28);opacity:0;pointer-events:none;transition:opacity .25s}
+  .nav-open .nav-shade{opacity:1;pointer-events:auto}
+  .nav-open{overflow:hidden}
+}
+[data-theme="dark"] .drawer-logout{background:#3a1a1d}
+[data-theme="dark"] .nav-shade{background:rgba(0,0,0,.5)}
